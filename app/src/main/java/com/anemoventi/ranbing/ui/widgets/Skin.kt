@@ -64,6 +64,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -226,14 +227,26 @@ fun SkinTabPage(
 ) {
     val bottom = outerPadding.calculateBottomPadding()
     if (LocalUseMiuix.current) {
+        val behavior = MiuixScrollBehavior()
         Column(modifier = Modifier.fillMaxSize()) {
-            MiuixCompactTopBar(title = title, actions = actions)
+            MiuixTopAppBar(
+                title = title,
+                largeTitle = title,
+                scrollBehavior = behavior,
+                actions = { actions() },
+            )
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = bottom),
+                    .nestedScroll(behavior.nestedScrollConnection),
             ) {
-                content()
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 12.dp, bottom = bottom),
+                ) {
+                    content()
+                }
             }
         }
     } else {
@@ -859,6 +872,7 @@ fun SkinSwitchRow(
     summary: String? = null,
     checked: Boolean,
     card: Boolean = true,
+    enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit,
 ) {
     val row: @Composable () -> Unit = {
@@ -866,9 +880,14 @@ fun SkinSwitchRow(
             MiuixListItem(
                 title = title,
                 summary = summary,
+                modifier = if (enabled) Modifier else Modifier.alpha(0.45f),
                 insideMargin = PaddingValues(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
                 endActions = {
-                    MiuixSwitch(checked = checked, onCheckedChange = onCheckedChange)
+                    MiuixSwitch(
+                        checked = checked,
+                        enabled = enabled,
+                        onCheckedChange = onCheckedChange,
+                    )
                 },
             )
         } else {
@@ -878,6 +897,7 @@ fun SkinSwitchRow(
                 trailingContent = {
                     M3Switch(
                         checked = checked,
+                        enabled = enabled,
                         onCheckedChange = onCheckedChange,
                         thumbContent = if (checked) {
                             {

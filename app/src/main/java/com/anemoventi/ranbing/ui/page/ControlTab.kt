@@ -434,7 +434,7 @@ private fun ControlPanel(
                     else -> -1
                 },
                 center = true,
-                enabled = !powerMode,
+                enabled = !powerMode && powerOn,
             ) { index ->
                 device.setPowerTarget(null)
                 scope.launch {
@@ -476,14 +476,14 @@ private fun ControlPanel(
                         text = if (overclock && !isMaxOverclock) "退出超频" else "超频",
                         modifier = Modifier.weight(1f).height(52.dp),
                         containerColor = OverclockRed,
-                        enabled = !powerMode && !isMaxOverclock && !maxRamping,
+                        enabled = !powerMode && powerOn && !isMaxOverclock && !maxRamping,
                         onClick = { applyOverclock(overclockVoltage(state.firmware)) },
                     )
                     SkinButton(
                         text = if (isMaxOverclock || maxRamping) "退出超频" else "超频Max(60w)",
                         modifier = Modifier.weight(1f).height(52.dp),
                         containerColor = Color(0xFF8B0000),
-                        enabled = !powerMode && !(overclock && !isMaxOverclock),
+                        enabled = !powerMode && powerOn && !(overclock && !isMaxOverclock),
                         onClick = {
                             if (maxRamping || isMaxOverclock) {
                                 stopMaxRamp(restore = true)
@@ -510,7 +510,7 @@ private fun ControlPanel(
                     text = if (overclock) "退出超频" else "超频",
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     containerColor = OverclockRed,
-                    enabled = !powerMode,
+                    enabled = !powerMode && powerOn,
                     onClick = { applyOverclock(overclockVoltage(state.firmware)) },
                 )
             }
@@ -545,6 +545,7 @@ private fun ControlPanel(
                 },
                 valueRange = -25f..25f,
                 steps = 499,
+                enabled = powerOn,
                 onValueChangeFinished = {
                     tempDragging = false
                     scope.launch { device.writeRegister("temp_target", tempDraft) }
@@ -577,6 +578,7 @@ private fun ControlPanel(
                 },
                 valueRange = 0f..40f,
                 steps = 39,
+                enabled = powerOn,
                 onValueChangeFinished = {
                     powerDragging = false
                     stopMaxRamp(restore = false)
@@ -616,7 +618,7 @@ private fun ControlPanel(
                 } else {
                     Spacer(Modifier.weight(1f))
                 }
-                SkinButton("应用") {
+                SkinButton("应用", enabled = powerOn) {
                     powerInput.toFloatOrNull()?.let {
                         stopMaxRamp(restore = false)
                         if (powerTarget == null) prePowerVoltage = voltage
@@ -624,7 +626,7 @@ private fun ControlPanel(
                     }
                 }
                 if (powerTarget != null) {
-                    SkinButton("关闭") {
+                    SkinButton("关闭", enabled = powerOn) {
                         device.setPowerTarget(null)
                         scope.launch { device.writeRegister("slider_voltage", prePowerVoltage) }
                     }
@@ -650,7 +652,10 @@ private fun ControlPanel(
             checked = powerOn,
             card = false,
         ) { on ->
-            if (!on) device.setPowerTarget(null)
+            if (!on) {
+                device.setPowerTarget(null)
+                stopMaxRamp(restore = false)
+            }
             scope.launch { device.writeRegister("device_power_on", if (on) 1 else 0) }
         }
         SkinSwitchRow(
@@ -658,8 +663,11 @@ private fun ControlPanel(
             summary = "FAN_LED",
             checked = fanLed,
             card = false,
+            enabled = powerOn,
         ) { on ->
-            scope.launch { device.writeRegister("FAN_LED", if (on) 1 else 0) }
+            if (powerOn) {
+                scope.launch { device.writeRegister("FAN_LED", if (on) 1 else 0) }
+            }
         }
     }
     SkinNavRow(

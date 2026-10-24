@@ -10,10 +10,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -25,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.anemoventi.ranbing.data.AppSettings
 import com.anemoventi.ranbing.data.SettingsState
@@ -37,8 +41,16 @@ import com.anemoventi.ranbing.ui.widgets.SkinChoiceRow
 import com.anemoventi.ranbing.ui.widgets.SkinScaffold
 import com.anemoventi.ranbing.ui.widgets.SkinSectionTitle
 import com.anemoventi.ranbing.ui.widgets.SkinSwitchRow
+import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
+import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.SmallTitle as MiuixSmallTitle
+import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.preference.WindowSpinnerPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.material3.Icon as M3Icon
@@ -59,17 +71,21 @@ fun ThemePage(
     settings: AppSettings,
 ) {
     val navigator = LocalNavigator.current
-    SkinScaffold(title = "主题设置", onBack = { navigator.pop() }) { _ ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (LocalUseMiuix.current) {
-                MiuixThemeSettings(prefs, settings)
-            } else {
+    if (LocalUseMiuix.current) {
+        MiuixThemeScreen(
+            prefs = prefs,
+            settings = settings,
+            onBack = { navigator.pop() },
+        )
+    } else {
+        SkinScaffold(title = "主题设置", onBack = { navigator.pop() }) { _ ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 Material3ThemeSettings(prefs, settings)
             }
         }
@@ -77,7 +93,12 @@ fun ThemePage(
 }
 
 @Composable
-private fun MiuixThemeSettings(prefs: SettingsState, settings: AppSettings) {
+private fun MiuixThemeScreen(
+    prefs: SettingsState,
+    settings: AppSettings,
+    onBack: () -> Unit,
+) {
+    val scrollBehavior = MiuixScrollBehavior()
     val styleIndex = when (prefs.uiStyle) {
         UiStyle.AUTO -> 0
         UiStyle.MATERIAL3 -> 1
@@ -89,45 +110,82 @@ private fun MiuixThemeSettings(prefs: SettingsState, settings: AppSettings) {
         ThemeMode.SYSTEM -> 2
     }
     val rowMargin = PaddingValues(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp)
-    SkinCard(contentPadding = 0.dp) {
-        WindowSpinnerPreference(
-            title = "主题风格",
-            items = listOf(
-                DropdownItem(title = "跟随系统"),
-                DropdownItem(title = "Material 3"),
-                DropdownItem(title = "MIUIx"),
+
+    MiuixScaffold(
+        topBar = {
+            MiuixTopAppBar(
+                title = "主题设置",
+                scrollBehavior = scrollBehavior,
+                navigationIcon = {
+                    MiuixIconButton(onClick = onBack) {
+                        MiuixIcon(
+                            imageVector = MiuixIcons.Regular.Back,
+                            contentDescription = "返回",
+                        )
+                    }
+                },
+            )
+        },
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            contentPadding = PaddingValues(
+                top = padding.calculateTopPadding(),
+                bottom = 24.dp,
             ),
-            selectedIndex = styleIndex,
-            insideMargin = rowMargin,
-            onSelectedIndexChange = { index ->
-                settings.setUiStyle(
-                    when (index) {
-                        1 -> UiStyle.MATERIAL3
-                        2 -> UiStyle.MIUIX
-                        else -> UiStyle.AUTO
-                    },
-                )
-            },
-        )
-        WindowSpinnerPreference(
-            title = "主题模式",
-            items = listOf(
-                DropdownItem(title = "浅色主题"),
-                DropdownItem(title = "深色主题"),
-                DropdownItem(title = "跟随系统主题"),
-            ),
-            selectedIndex = modeIndex,
-            insideMargin = rowMargin,
-            onSelectedIndexChange = { index ->
-                settings.setThemeMode(
-                    when (index) {
-                        0 -> ThemeMode.LIGHT
-                        1 -> ThemeMode.DARK
-                        else -> ThemeMode.SYSTEM
-                    },
-                )
-            },
-        )
+        ) {
+            item { Spacer(Modifier.height(12.dp)) }
+            item { MiuixSmallTitle("主题风格") }
+            item {
+                MiuixCard(
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .padding(bottom = 12.dp),
+                    insideMargin = PaddingValues(0.dp),
+                ) {
+                    WindowSpinnerPreference(
+                        title = "UI 引擎",
+                        items = listOf(
+                            DropdownItem(title = "跟随系统"),
+                            DropdownItem(title = "Material 3"),
+                            DropdownItem(title = "MIUIx"),
+                        ),
+                        selectedIndex = styleIndex,
+                        insideMargin = rowMargin,
+                        onSelectedIndexChange = { index ->
+                            settings.setUiStyle(
+                                when (index) {
+                                    1 -> UiStyle.MATERIAL3
+                                    2 -> UiStyle.MIUIX
+                                    else -> UiStyle.AUTO
+                                },
+                            )
+                        },
+                    )
+                    WindowSpinnerPreference(
+                        title = "主题模式",
+                        items = listOf(
+                            DropdownItem(title = "浅色主题"),
+                            DropdownItem(title = "深色主题"),
+                            DropdownItem(title = "跟随系统主题"),
+                        ),
+                        selectedIndex = modeIndex,
+                        insideMargin = rowMargin,
+                        onSelectedIndexChange = { index ->
+                            settings.setThemeMode(
+                                when (index) {
+                                    0 -> ThemeMode.LIGHT
+                                    1 -> ThemeMode.DARK
+                                    else -> ThemeMode.SYSTEM
+                                },
+                            )
+                        },
+                    )
+                }
+            }
+        }
     }
 }
 

@@ -399,7 +399,7 @@ private fun ControlPanel(
                             device.writeRegister("slider_voltage", preOverclockVoltage)
                         } else {
                             preOverclockVoltage = voltage.coerceIn(2f, 12f)
-                            device.writeRegister("slider_voltage", 15f)
+                            device.writeRegister("slider_voltage", overclockVoltage(state.firmware))
                         }
                     }
                 },
@@ -580,5 +580,13 @@ private fun SyncedSlider(
     )
 }
 
+/** The mini program uses 14 V for firmware 1.03, 15 V otherwise (S(firmwareVersion)). */
+private fun overclockVoltage(firmware: String): Float {
+    val match = Regex("""(\d+)\.(\d+)""").find(firmware) ?: return 15f
+    val code = match.groupValues[1].toInt() * 100 + match.groupValues[2].toInt()
+    return if (code == 103) 14f else 15f
+}
+
+/** Unconnected NTC channels report ~-273.15 °C; show a dash instead of a bogus value. */
 private fun formatTemperature(value: Float): String =
     if (value < -100f) "--" else String.format(Locale.US, "%.1f", value)

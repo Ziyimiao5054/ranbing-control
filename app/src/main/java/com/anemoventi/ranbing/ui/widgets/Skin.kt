@@ -252,14 +252,18 @@ fun SkinTabPage(
             )
         }
         M3MaterialTheme(colorScheme = scheme) {
-            Column(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(background),
+            ) {
                 M3LargeFlexibleTopAppBar(
                     title = { M3Text(title) },
                     scrollBehavior = behavior,
                     actions = { actions() },
                     colors = M3TopAppBarDefaults.topAppBarColors(
-                        containerColor = background,
-                        scrolledContainerColor = background,
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent,
                     ),
                 )
                 Box(
@@ -582,9 +586,9 @@ fun SkinInputField(
     placeholder: String = "",
 ) {
     val container = if (LocalUseMiuix.current) {
-        MiuixTheme.colorScheme.surfaceContainerHigh
+        MiuixTheme.colorScheme.surfaceContainer
     } else {
-        M3MaterialTheme.colorScheme.surfaceContainerHigh
+        M3MaterialTheme.colorScheme.surfaceContainer
     }
     val textColor = if (LocalUseMiuix.current) {
         MiuixTheme.colorScheme.onSurface
@@ -606,6 +610,11 @@ fun SkinInputField(
         modifier = modifier
             .fillMaxWidth()
             .background(container, RoundedCornerShape(12.dp))
+            .border(
+                width = 1.dp,
+                color = hintColor.copy(alpha = 0.4f),
+                shape = RoundedCornerShape(12.dp),
+            )
             .padding(horizontal = 12.dp, vertical = 12.dp),
         decorationBox = { inner ->
             Box {
@@ -1107,16 +1116,17 @@ private fun MiuixCompactTopBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (onBack != null) {
-            MiuixIconButton(
-                onClick = onBack,
-                minHeight = 40.dp,
-                minWidth = 40.dp,
-                cornerRadius = 50.dp,
-                backgroundColor = MiuixTheme.colorScheme.surfaceContainerHigh,
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MiuixTheme.colorScheme.surfaceContainerHigh)
+                    .clickable(onClick = onBack),
+                contentAlignment = Alignment.Center,
             ) {
                 MiuixIcon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "杩斿洖",
+                    contentDescription = "返回",
                     tint = MiuixTheme.colorScheme.onSurface,
                 )
             }
@@ -1234,16 +1244,25 @@ fun SkinPillRow(
 @Composable
 private fun PillItem(label: String, selected: Boolean, enabled: Boolean, onClick: () -> Unit) {
     if (LocalUseMiuix.current) {
-        MiuixButton(
-            onClick = onClick,
-            enabled = enabled,
-            colors = if (selected) {
-                MiuixButtonDefaults.buttonColorsPrimary()
-            } else {
-                MiuixButtonDefaults.buttonColors()
-            },
+        val container = if (selected) {
+            MiuixTheme.colorScheme.primary.copy(alpha = if (enabled) 0.22f else 0.12f)
+        } else {
+            MiuixTheme.colorScheme.surfaceContainerHigh.copy(alpha = if (enabled) 1f else 0.5f)
+        }
+        val content = if (selected) {
+            MiuixTheme.colorScheme.primary.copy(alpha = if (enabled) 1f else 0.45f)
+        } else {
+            MiuixTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else 0.4f)
+        }
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(50))
+                .background(container)
+                .clickable(enabled = enabled, onClick = onClick)
+                .padding(horizontal = 18.dp, vertical = 9.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            MiuixText(label)
+            MiuixText(text = label, color = content)
         }
     } else {
         M3FilterChip(

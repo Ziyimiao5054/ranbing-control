@@ -345,7 +345,7 @@ private fun ControlPanel(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         val infoBlock = state.config["upgrade_info_block"] as? ByteArray
         val configuredName = remember(infoBlock) { decodeDeviceName(infoBlock) }
-        val displayName = configuredName ?: state.deviceName.ifBlank { "散热器" }
+        val displayName = state.deviceName.ifBlank { configuredName ?: "散热器" }
         var showRename by remember { mutableStateOf(false) }
         var renameValue by remember { mutableStateOf("") }
         var renameError by remember { mutableStateOf<String?>(null) }
@@ -561,8 +561,8 @@ private fun ControlPanel(
                 SkinText("目标功率", SkinTextKind.TITLE)
                 SkinText(
                     when {
-                        powerTarget != null -> String.format(Locale.US, "%.0f W", powerSlider)
-                        powerDragging -> String.format(Locale.US, "%.0f W", powerSlider)
+                        powerTarget != null -> String.format(Locale.US, "(±3W)%.0fW", powerSlider)
+                        powerDragging -> String.format(Locale.US, "(±3W)%.0fW", powerSlider)
                         else -> "未启用"
                     },
                     SkinTextKind.TITLE,

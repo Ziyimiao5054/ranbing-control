@@ -94,7 +94,6 @@ import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
 import top.yukonga.miuix.kmp.preference.ArrowPreference as MiuixArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import top.yukonga.miuix.kmp.utils.PressFeedbackType
 
 data class SkinTab(val label: String, val icon: ImageVector)
 
@@ -303,8 +302,6 @@ fun SkinStatusCard(
                 color = container,
                 contentColor = textColor,
             ),
-            showIndication = true,
-            pressFeedbackType = PressFeedbackType.Tilt,
             onClick = onClick,
         ) {
             Box(modifier = Modifier.fillMaxWidth()) {

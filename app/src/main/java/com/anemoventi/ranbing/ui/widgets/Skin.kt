@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -255,6 +256,7 @@ fun SkinTabPage(
                 M3LargeFlexibleTopAppBar(
                     title = { M3Text(title) },
                     scrollBehavior = behavior,
+                    windowInsets = M3TopAppBarDefaults.windowInsets.add(WindowInsets(left = 16.dp)),
                     actions = { actions() },
                     colors = M3TopAppBarDefaults.topAppBarColors(
                         containerColor = pageBackground,

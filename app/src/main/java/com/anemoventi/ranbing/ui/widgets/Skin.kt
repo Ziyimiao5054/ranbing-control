@@ -277,6 +277,7 @@ fun SkinTabPage(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
+                            .offset(y = (-0.7).dp)
                             .padding(bottom = bottom),
                     ) {
                         content()

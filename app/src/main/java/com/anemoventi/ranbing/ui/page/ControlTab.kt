@@ -320,6 +320,10 @@ private fun ControlPanel(
             }
         }
     }
+    // A ramp must never survive a disconnect and resume on the next connection.
+    LaunchedEffect(state.connection) {
+        if (state.connection !is ConnectionState.Connected) stopMaxRamp(restore = false)
+    }
     val powerTarget by device.powerTarget.collectAsStateWithLifecycle()
     val powerMode = powerTarget != null
     var powerSlider by remember { mutableFloatStateOf(powerTarget ?: 0f) }

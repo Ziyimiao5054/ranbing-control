@@ -141,8 +141,6 @@ fun ControlTab(
         }
     }
 
-    val context = LocalContext.current
-    var overlayRunning by remember { mutableStateOf(OverlayService.isRunning) }
     Box(modifier = Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
@@ -172,29 +170,6 @@ fun ControlTab(
             )
         }
     }
-    SkinIconAction(
-        icon = Icons.Rounded.Layers,
-        contentDescription = if (overlayRunning) "关闭悬浮窗" else "开启悬浮窗",
-        onClick = {
-            if (!Settings.canDrawOverlays(context)) {
-                context.startActivity(
-                    Intent(
-                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:${context.packageName}"),
-                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                )
-            } else if (OverlayService.isRunning) {
-                context.stopService(Intent(context, OverlayService::class.java))
-                overlayRunning = false
-            } else {
-                context.startService(Intent(context, OverlayService::class.java))
-                overlayRunning = true
-            }
-        },
-        modifier = Modifier
-            .align(Alignment.TopEnd)
-            .padding(end = 16.dp, top = 8.dp),
-    )
     }
 }
 

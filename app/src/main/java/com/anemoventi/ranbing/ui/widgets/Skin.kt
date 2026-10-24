@@ -221,29 +221,19 @@ fun SkinMainScaffold(
 fun SkinTabPage(
     title: String,
     outerPadding: PaddingValues,
+    actions: @Composable () -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     val bottom = outerPadding.calculateBottomPadding()
     if (LocalUseMiuix.current) {
-        val behavior = MiuixScrollBehavior()
         Column(modifier = Modifier.fillMaxSize()) {
-            MiuixTopAppBar(
-                title = title,
-                largeTitle = title,
-                scrollBehavior = behavior,
-            )
+            MiuixCompactTopBar(title = title, actions = actions)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .nestedScroll(behavior.nestedScrollConnection),
+                    .padding(bottom = bottom),
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 12.dp, bottom = bottom),
-                ) {
-                    content()
-                }
+                content()
             }
         }
     } else {
@@ -252,6 +242,7 @@ fun SkinTabPage(
             M3LargeFlexibleTopAppBar(
                 title = { M3Text(title) },
                 scrollBehavior = behavior,
+                actions = { actions() },
                 colors = M3TopAppBarDefaults.topAppBarColors(
                     containerColor = M3MaterialTheme.colorScheme.surface,
                     scrolledContainerColor = M3MaterialTheme.colorScheme.surface,
@@ -1055,33 +1046,42 @@ private fun SkinRadioIndicator(selected: Boolean) {
 
 /** MIUIx secondary-page bar: circular back button and a left aligned title on one row. */
 @Composable
-private fun MiuixCompactTopBar(title: String, onBack: () -> Unit) {
+private fun MiuixCompactTopBar(
+    title: String,
+    onBack: (() -> Unit)? = null,
+    actions: @Composable () -> Unit = {},
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .windowInsetsPadding(WindowInsets.statusBars)
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+            .padding(start = 16.dp, end = 8.dp, top = 6.dp, bottom = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        MiuixIconButton(
-            onClick = onBack,
-            minHeight = 40.dp,
-            minWidth = 40.dp,
-            cornerRadius = 50.dp,
-            backgroundColor = MiuixTheme.colorScheme.surfaceContainerHigh,
-        ) {
-            MiuixIcon(
-                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = "返回",
-                tint = MiuixTheme.colorScheme.onSurface,
+        if (onBack != null) {
+            MiuixIconButton(
+                onClick = onBack,
+                minHeight = 40.dp,
+                minWidth = 40.dp,
+                cornerRadius = 50.dp,
+                backgroundColor = MiuixTheme.colorScheme.surfaceContainerHigh,
+            ) {
+                MiuixIcon(
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                    contentDescription = "返回",
+                    tint = MiuixTheme.colorScheme.onSurface,
+                )
+            }
+            Spacer(Modifier.width(16.dp))
+        }
+        Box(modifier = Modifier.weight(1f)) {
+            MiuixText(
+                text = title,
+                style = MiuixTheme.textStyles.title3,
+                color = MiuixTheme.colorScheme.onBackground,
             )
         }
-        Spacer(Modifier.width(16.dp))
-        MiuixText(
-            text = title,
-            style = MiuixTheme.textStyles.title3,
-            color = MiuixTheme.colorScheme.onBackground,
-        )
+        actions()
     }
 }
 

@@ -33,7 +33,7 @@ fun DebugTab(
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(
-            if (LocalUseMiuix.current) 8.dp else 4.dp,
+            if (LocalUseMiuix.current) 12.dp else 4.dp,
         ),
         contentPadding = PaddingValues(
             start = 16.dp,

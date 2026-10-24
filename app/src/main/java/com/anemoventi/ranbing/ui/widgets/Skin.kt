@@ -659,10 +659,11 @@ fun SkinSwitchRow(
     title: String,
     summary: String? = null,
     checked: Boolean,
+    card: Boolean = true,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    if (LocalUseMiuix.current) {
-        SkinCard(contentPadding = 0.dp) {
+    val row: @Composable () -> Unit = {
+        if (LocalUseMiuix.current) {
             MiuixListItem(
                 title = title,
                 summary = summary,
@@ -671,9 +672,7 @@ fun SkinSwitchRow(
                     MiuixSwitch(checked = checked, onCheckedChange = onCheckedChange)
                 },
             )
-        }
-    } else {
-        SkinCard(contentPadding = 0.dp) {
+        } else {
             M3ListItem(
                 headlineContent = { M3Text(title) },
                 supportingContent = summary?.let { text -> { M3Text(text) } },
@@ -683,6 +682,11 @@ fun SkinSwitchRow(
                 ),
             )
         }
+    }
+    if (card) {
+        SkinCard(contentPadding = 0.dp) { row() }
+    } else {
+        row()
     }
 }
 

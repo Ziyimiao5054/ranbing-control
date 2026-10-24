@@ -136,7 +136,7 @@ fun ControlTab(
                 bottom = outerPadding.calculateBottomPadding() + 8.dp,
             ),
         verticalArrangement = Arrangement.spacedBy(
-            if (LocalUseMiuix.current) 8.dp else 4.dp,
+            if (LocalUseMiuix.current) 12.dp else 4.dp,
         ),
     ) {
         when (val connection = state.connection) {
@@ -372,7 +372,7 @@ private fun ControlPanel(
                     }
                 }
             }
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(12.dp))
             SkinButton(
                 text = if (overclock) "退出超频" else "超频",
                 modifier = Modifier.fillMaxWidth().height(52.dp),
@@ -400,19 +400,23 @@ private fun ControlPanel(
     }
 
     SkinSectionTitle("控制")
-    SkinSwitchRow(
-        title = "电源",
-        summary = if (powerOn) "已开机" else "已关机",
-        checked = powerOn,
-    ) { on ->
-        scope.launch { device.writeRegister("device_power_on", if (on) 1 else 0) }
-    }
-    SkinSwitchRow(
-        title = "风扇灯",
-        summary = "FAN_LED",
-        checked = fanLed,
-    ) { on ->
-        scope.launch { device.writeRegister("FAN_LED", if (on) 1 else 0) }
+    SkinCard(contentPadding = 0.dp) {
+        SkinSwitchRow(
+            title = "电源",
+            summary = if (powerOn) "已开机" else "已关机",
+            checked = powerOn,
+            card = false,
+        ) { on ->
+            scope.launch { device.writeRegister("device_power_on", if (on) 1 else 0) }
+        }
+        SkinSwitchRow(
+            title = "风扇灯",
+            summary = "FAN_LED",
+            checked = fanLed,
+            card = false,
+        ) { on ->
+            scope.launch { device.writeRegister("FAN_LED", if (on) 1 else 0) }
+        }
     }
     SkinNavRow(
         title = "断开连接",

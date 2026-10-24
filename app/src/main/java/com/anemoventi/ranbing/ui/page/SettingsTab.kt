@@ -36,7 +36,7 @@ fun SettingsTab(outerPadding: PaddingValues) {
                 bottom = outerPadding.calculateBottomPadding() + 8.dp,
             ),
         verticalArrangement = Arrangement.spacedBy(
-            if (LocalUseMiuix.current) 8.dp else 4.dp,
+            if (LocalUseMiuix.current) 12.dp else 4.dp,
         ),
     ) {
         SkinSectionTitle("个性化")

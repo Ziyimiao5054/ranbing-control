@@ -5,6 +5,7 @@ package com.anemoventi.ranbing.ui.page
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,9 +30,12 @@ fun DebugTab(
     outerPadding: PaddingValues,
 ) {
     val frames by device.frames.collectAsStateWithLifecycle()
+    val miuix = LocalUseMiuix.current
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .offset(y = (-7).dp),
         verticalArrangement = Arrangement.spacedBy(
             if (LocalUseMiuix.current) 12.dp else 4.dp,
         ),
@@ -42,7 +46,9 @@ fun DebugTab(
             bottom = outerPadding.calculateBottomPadding() + 8.dp,
         ),
     ) {
-        item { SkinSectionTitle("收发帧 · ${frames.size}") }
+        if (!miuix) {
+            item { SkinSectionTitle("收发帧 · ${frames.size}") }
+        }
         items(frames) { entry -> FrameRow(entry) }
     }
 }

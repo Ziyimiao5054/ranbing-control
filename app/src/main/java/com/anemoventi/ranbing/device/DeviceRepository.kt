@@ -293,21 +293,35 @@ class DeviceRepository(context: Context) {
         val statusSize = statusSpace.defs.sumOf { it.byteSize }
         val configSize = configSpace.defs.sumOf { it.byteSize }
 
-        val changed = if (frame.addr == Commands.READ_ALL) {
-            when {
-                frame.payload.size == statusSize -> statusSpace.applyAll(frame.payload, statusValues)
-                frame.payload.size == configSize -> configSpace.applyAll(frame.payload, configValues)
-                frame.payload.size < configSize -> statusSpace.applyAll(frame.payload, statusValues)
-                else -> configSpace.applyAll(frame.payload, configValues)
-            }
-        } else {
-            val fromStatus = statusSpace.applyOne(frame.addr, frame.payload, statusValues)
-            val fromConfig = if (fromStatus == null) {
-                configSpace.applyOne(frame.addr, frame.payload, configValues)
+        val changed = runCatching {
+            if (frame.addr == Commands.READ_ALL) {
+                when {
+                    frame.payload.size == statusSize -> statusSpace.applyAll(frame.payload, statusValues)
+                    frame.payload.size == configSize -> configSpace.applyAll(frame.payload, configValues)
+                    frame.payload.size < configSize -> statusSpace.applyAll(frame.payload, statusValues)
+                    else -> configSpace.applyAll(frame.payload, configValues)
+                }
             } else {
-                null
+                val fromStatus = statusSpace.applyOne(frame.addr, frame.payload, statusValues)
+                val fromConfig = if (fromStatus == null) {
+                    configSpace.applyOne(frame.addr, frame.payload, configValues)
+                } else {
+                    null
+                }
+                listOfNotNull(fromStatus, fromConfig)
             }
-            listOfNotNull(fromStatus, fromConfig)
+        }.getOrElse {
+            addLog(
+                FrameLogEntry(
+                    FrameDirection.INFO,
+                    System.currentTimeMillis(),
+                    -1,
+                    -1,
+                    "",
+                    "解析失败：${it.javaClass.simpleName} ${it.message.orEmpty()}",
+                ),
+            )
+            emptyList()
         }
 
         if (changed.isNotEmpty()) {

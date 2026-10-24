@@ -81,6 +81,8 @@ class RegisterSpace(val defs: List<RegisterDef>) {
     /** Parses a single register payload; returns the register name when it changed. */
     fun applyOne(addr: Int, payload: ByteArray, values: MutableMap<String, Any>): String? {
         val def = defByAddr(addr) ?: return null
+        // Short ACK/echo frames carry no register data; keep the previous value.
+        if (payload.size < def.byteSize) return null
         val parsed = parse(def, payload, 0)
         if (values[def.name] == parsed) return null
         values[def.name] = parsed
@@ -106,9 +108,10 @@ class RegisterSpace(val defs: List<RegisterDef>) {
 
     fun parse(def: RegisterDef, payload: ByteArray, offset: Int): Any {
         if (def.arrayLen > 0) {
-            if (offset + def.byteSize > payload.size) return ByteArray(def.byteSize)
+            if (offset < 0 || offset + def.byteSize > payload.size) return ByteArray(def.byteSize)
             return payload.copyOfRange(offset, offset + def.byteSize)
         }
+        if (offset < 0 || offset + def.type.size > payload.size) return def.defaultValue()
         val buffer = ByteBuffer.wrap(payload, offset, def.type.size).order(ByteOrder.LITTLE_ENDIAN)
         return when (def.type) {
             RegType.U8 -> payload[offset].toInt() and 0xFF

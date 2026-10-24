@@ -112,4 +112,20 @@ class FrameCodecTest {
         assertEquals(60L, values["timer_countdown"])
         assertEquals(true, changed.contains("l_temp"))
     }
+
+    @Test
+    fun `apply one ignores short payload`() {
+        val space = DeviceModel.X8.statusSpace
+        val values = space.initialValues().toMutableMap()
+        val before = values["slider_voltage"]
+        assertNull(space.applyOne(13, byteArrayOf(), values))
+        assertEquals(before, values["slider_voltage"])
+    }
+
+    @Test
+    fun `parse returns default for short payload`() {
+        val space = DeviceModel.X8.statusSpace
+        val def = space.def("slider_voltage")!!
+        assertEquals(5f, space.parse(def, byteArrayOf(1), 0))
+    }
 }

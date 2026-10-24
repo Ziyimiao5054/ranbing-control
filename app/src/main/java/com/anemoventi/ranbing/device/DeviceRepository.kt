@@ -21,6 +21,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlin.math.abs
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 enum class FrameDirection { TX, RX, INFO }
 
@@ -73,6 +76,10 @@ class DeviceRepository(context: Context) {
 
     private val _frames = MutableStateFlow<List<FrameLogEntry>>(emptyList())
     val frames: StateFlow<List<FrameLogEntry>> = _frames.asStateFlow()
+
+    private val _powerTarget = MutableStateFlow<Float?>(null)
+    val powerTarget: StateFlow<Float?> = _powerTarget.asStateFlow()
+    private var powerJob: Job? = null
 
     private val assembler = FrameCodec.Assembler()
 
@@ -137,14 +144,79 @@ class DeviceRepository(context: Context) {
 
     fun disconnect() {
         manualDisconnect = true
+        powerJob?.cancel()
+        _powerTarget.value = null
         pollJob?.cancel()
         ble.disconnect()
     }
 
     fun shutdown() {
+        powerJob?.cancel()
         pollJob?.cancel()
         ble.shutdown()
         scope.cancel()
+    }
+
+    /**
+     * Software power governor: the firmware has no power setpoint, so this adjusts
+     * `slider_voltage` towards the requested wattage using the measured power.
+     */
+    fun setPowerTarget(watts: Float?) {
+        powerJob?.cancel()
+        if (watts == null) {
+            _powerTarget.value = null
+            return
+        }
+        val target = watts.coerceIn(0f, 40f)
+        _powerTarget.value = target
+        powerJob = scope.launch { runPowerLoop() }
+    }
+
+    private suspend fun runPowerLoop() {
+        while (true) {
+            val target = _powerTarget.value ?: return
+            val current = _state.value
+            if (current.connection !is ConnectionState.Connected) {
+                _powerTarget.value = null
+                return
+            }
+            if (target <= 0.5f) {
+                writeRegister("slider_voltage", 0f)
+                return
+            }
+            val hot = current.float("r_temp", 25f)
+            if (hot > 65f) {
+                writeRegister("slider_voltage", 0f)
+                addLog(
+                    FrameLogEntry(
+                        FrameDirection.INFO,
+                        System.currentTimeMillis(),
+                        note = "热端 ${hot.toInt()}°C 过高，功率控制已停止",
+                    ),
+                )
+                _powerTarget.value = null
+                return
+            }
+            val voltage = current.float("slider_voltage", 5f).coerceIn(0f, 15f)
+            val power = current.float("power", 0f)
+            val next = nextVoltageForPower(target, power, voltage)
+            if (abs(next - voltage) >= 0.2f) {
+                writeRegister("slider_voltage", next)
+            }
+            delay(2000)
+        }
+    }
+
+    private fun nextVoltageForPower(target: Float, power: Float, voltage: Float): Float {
+        val estimate = if (power > 1f && voltage > 1f) {
+            // P is roughly proportional to V^2 for the TEC; refine from the last sample.
+            sqrt(target / (power / (voltage * voltage)))
+        } else {
+            sqrt(target / 0.4f)
+        }
+        val clamped = estimate.coerceIn(0f, 12.5f)
+        val delta = (clamped - voltage).coerceIn(-1f, 1f)
+        return ((voltage + delta).coerceIn(0f, 12.5f) * 10f).roundToInt() / 10f
     }
 
     private fun onConnected() {

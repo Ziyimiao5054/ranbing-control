@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -69,6 +70,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -1088,6 +1090,62 @@ fun SkinMonoText(
             style = M3MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
         )
     }
+}
+
+@Composable
+fun SkinNumberField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String = "",
+    suffix: String? = null,
+) {
+    val container = if (LocalUseMiuix.current) {
+        MiuixTheme.colorScheme.surfaceContainerHigh
+    } else {
+        M3MaterialTheme.colorScheme.surfaceContainerHigh
+    }
+    val textColor = if (LocalUseMiuix.current) {
+        MiuixTheme.colorScheme.onSurface
+    } else {
+        M3MaterialTheme.colorScheme.onSurface
+    }
+    val hintColor = if (LocalUseMiuix.current) {
+        MiuixTheme.colorScheme.onSurfaceVariantSummary
+    } else {
+        M3MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        textStyle = TextStyle(fontSize = 16.sp, color = textColor),
+        cursorBrush = SolidColor(textColor),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = modifier
+            .fillMaxWidth()
+            .background(container, RoundedCornerShape(12.dp))
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        decorationBox = { inner ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.weight(1f)) {
+                    if (value.isEmpty() && placeholder.isNotEmpty()) {
+                        androidx.compose.foundation.text.BasicText(
+                            text = placeholder,
+                            style = TextStyle(fontSize = 16.sp, color = hintColor),
+                        )
+                    }
+                    inner()
+                }
+                if (suffix != null) {
+                    androidx.compose.foundation.text.BasicText(
+                        text = suffix,
+                        style = TextStyle(fontSize = 14.sp, color = hintColor),
+                    )
+                }
+            }
+        },
+    )
 }
 
 @Composable

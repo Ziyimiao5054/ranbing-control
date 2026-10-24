@@ -56,8 +56,10 @@ import com.anemoventi.ranbing.ui.widgets.SkinInfoRow
 import com.anemoventi.ranbing.ui.widgets.SkinLabeledSlider
 import com.anemoventi.ranbing.ui.widgets.SkinMonoText
 import com.anemoventi.ranbing.ui.widgets.SkinNavRow
+import com.anemoventi.ranbing.ui.widgets.SkinNumberField
 import com.anemoventi.ranbing.ui.widgets.SkinPillRow
 import com.anemoventi.ranbing.ui.widgets.SkinSectionTitle
+import com.anemoventi.ranbing.ui.widgets.SkinSlider
 import com.anemoventi.ranbing.ui.widgets.SkinStatCard
 import com.anemoventi.ranbing.ui.widgets.SkinStatusCard
 import com.anemoventi.ranbing.ui.widgets.SkinStatusTone
@@ -294,6 +296,14 @@ private fun ControlPanel(
     val voltage = state.float("slider_voltage", 5f)
     val overclock = voltage >= 14f
     var preOverclockVoltage by remember { mutableFloatStateOf(5f) }
+    val powerTarget by device.powerTarget.collectAsStateWithLifecycle()
+    var powerSlider by remember { mutableFloatStateOf(powerTarget ?: 0f) }
+    var powerInput by remember { mutableStateOf("") }
+    LaunchedEffect(powerTarget) {
+        if (powerTarget != null) {
+            powerSlider = powerTarget!!.coerceIn(0f, 40f)
+        }
+    }
 
     val firmwareLabel = state.firmware.ifBlank { "固件未知" }
     val gradeLabel = when {
@@ -371,6 +381,7 @@ private fun ControlPanel(
                         device.writeRegister("temp_control_enable", 1)
                     }
                 }
+                if (index == 3) device.setPowerTarget(null)
             }
             Spacer(Modifier.height(12.dp))
             SkinButton(
@@ -378,6 +389,7 @@ private fun ControlPanel(
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 containerColor = OverclockRed,
                 onClick = {
+                    device.setPowerTarget(null)
                     scope.launch {
                         if (overclock) {
                             device.writeRegister("slider_voltage", preOverclockVoltage)
@@ -399,6 +411,62 @@ private fun ControlPanel(
         }
     }
 
+    SkinSectionTitle("制冷功率")
+    SkinCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            SkinText("目标功率", SkinTextKind.TITLE)
+            SkinText(
+                if (powerTarget == null) "未启用" else String.format(Locale.US, "%.0f W", powerTarget),
+                SkinTextKind.TITLE,
+            )
+        }
+        SkinSlider(
+            value = powerSlider,
+            onValueChange = { powerSlider = it },
+            valueRange = 0f..40f,
+            steps = 39,
+            onValueChangeFinished = { device.setPowerTarget(powerSlider) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            SkinNumberField(
+                value = powerInput,
+                onValueChange = { text ->
+                    powerInput = text.filter { it.isDigit() || it == '.' }.take(4)
+                },
+                modifier = Modifier.weight(1f),
+                placeholder = "0–40",
+                suffix = "W",
+            )
+            SkinButton("应用") {
+                powerInput.toFloatOrNull()?.let { device.setPowerTarget(it) }
+            }
+            if (powerTarget != null) {
+                SkinButton("关闭") {
+                    device.setPowerTarget(null)
+                    scope.launch { device.writeRegister("slider_voltage", 0f) }
+                }
+            }
+        }
+        if (powerTarget != null) {
+            SkinText(
+                "实测 %.1f W · 电压 %.1f V".format(
+                    state.float("power"),
+                    state.float("slider_voltage", 5f),
+                ),
+                SkinTextKind.CAPTION,
+            )
+        }
+    }
+
     SkinSectionTitle("控制")
     SkinCard(contentPadding = 0.dp) {
         SkinSwitchRow(
@@ -407,6 +475,7 @@ private fun ControlPanel(
             checked = powerOn,
             card = false,
         ) { on ->
+            if (!on) device.setPowerTarget(null)
             scope.launch { device.writeRegister("device_power_on", if (on) 1 else 0) }
         }
         SkinSwitchRow(

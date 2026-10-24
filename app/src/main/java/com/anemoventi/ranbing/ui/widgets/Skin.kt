@@ -122,48 +122,61 @@ fun SkinScaffold(
     content: @Composable (PaddingValues) -> Unit,
 ) {
     if (LocalUseMiuix.current) {
-        val behavior = MiuixScrollBehavior()
-        val backButton: @Composable () -> Unit = {
-            if (onBack != null) {
-                MiuixIconButton(
-                    onClick = onBack,
-                    minHeight = 40.dp,
-                    minWidth = 40.dp,
-                    cornerRadius = 50.dp,
-                    backgroundColor = MiuixTheme.colorScheme.surfaceContainerHigh,
-                ) {
-                    MiuixIcon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                        contentDescription = "杩斿洖",
-                        tint = MiuixTheme.colorScheme.onSurface,
-                    )
-                }
-            }
+        val background = MiuixTheme.colorScheme.background
+        val onBackground = MiuixTheme.colorScheme.onBackground
+        val dark = background.luminance() < 0.5f
+        val pageBackground = if (dark) background else Color(0xFFF2F3F5)
+        val collapsedBar = if (dark) background else Color.White
+        val scheme = if (dark) {
+            darkColorScheme(
+                primary = Color(0xFF287AF9),
+                background = pageBackground,
+                surface = pageBackground,
+                onBackground = onBackground,
+                onSurface = onBackground,
+            )
+        } else {
+            lightColorScheme(
+                primary = Color(0xFF287AF9),
+                background = pageBackground,
+                surface = Color.White,
+                onBackground = onBackground,
+                onSurface = onBackground,
+            )
         }
-        MiuixScaffold(
-            topBar = {
-                if (onBack != null) {
-                    // Secondary page: compact bar with the title inline, as in the reference app.
-                    MiuixCompactTopBar(title = title, onBack = onBack)
-                } else {
-                    MiuixTopAppBar(
-                        title = title,
-                        largeTitle = title,
+        val behavior = M3TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+        M3MaterialTheme(colorScheme = scheme) {
+            M3Scaffold(
+                containerColor = pageBackground,
+                topBar = {
+                    M3LargeTopAppBar(
+                        title = { M3Text(title) },
                         scrollBehavior = behavior,
-                        navigationIcon = backButton,
+                        navigationIcon = {
+                            if (onBack != null) {
+                                M3FilledTonalIconButton(onClick = onBack) {
+                                    M3Icon(
+                                        Icons.AutoMirrored.Rounded.ArrowBack,
+                                        contentDescription = "返回",
+                                    )
+                                }
+                            }
+                        },
+                        colors = M3TopAppBarDefaults.topAppBarColors(
+                            containerColor = pageBackground,
+                            scrolledContainerColor = collapsedBar,
+                        ),
                     )
+                },
+                bottomBar = bottomBar,
+            ) { padding ->
+                Column(
+                    modifier = Modifier
+                        .padding(padding)
+                        .nestedScroll(behavior.nestedScrollConnection),
+                ) {
+                    content(PaddingValues(0.dp))
                 }
-            },
-            bottomBar = bottomBar,
-        ) { padding ->
-            Column(
-                modifier = Modifier
-                    .padding(padding)
-                    .then(
-                        if (onBack == null) Modifier.nestedScroll(behavior.nestedScrollConnection) else Modifier,
-                    ),
-            ) {
-                content(PaddingValues(0.dp))
             }
         }
     } else {
@@ -177,7 +190,7 @@ fun SkinScaffold(
                     navigationIcon = {
                         if (onBack != null) {
                             M3FilledTonalIconButton(onClick = onBack) {
-                                M3Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "杩斿洖")
+                                M3Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
                             }
                         }
                     },
@@ -251,19 +264,22 @@ fun SkinTabPage(
                 onSurface = onBackground,
             )
         }
+        val dark = background.luminance() < 0.5f
+        val pageBackground = if (dark) background else Color(0xFFF2F3F5)
+        val collapsedBar = if (dark) background else Color.White
         M3MaterialTheme(colorScheme = scheme) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(background),
+                    .background(pageBackground),
             ) {
                 M3LargeFlexibleTopAppBar(
                     title = { M3Text(title) },
                     scrollBehavior = behavior,
                     actions = { actions() },
                     colors = M3TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        scrolledContainerColor = Color.Transparent,
+                        containerColor = pageBackground,
+                        scrolledContainerColor = collapsedBar,
                     ),
                 )
                 Box(

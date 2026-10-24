@@ -49,6 +49,7 @@ import com.anemoventi.ranbing.device.float
 import com.anemoventi.ranbing.device.int
 import com.anemoventi.ranbing.device.long
 import com.anemoventi.ranbing.protocol.DeviceModel
+import com.anemoventi.ranbing.ui.theme.LocalUseMiuix
 import com.anemoventi.ranbing.ui.widgets.SkinButton
 import com.anemoventi.ranbing.ui.widgets.SkinCard
 import com.anemoventi.ranbing.ui.widgets.SkinInfoRow
@@ -134,7 +135,9 @@ fun ControlTab(
                 end = 16.dp,
                 bottom = outerPadding.calculateBottomPadding() + 8.dp,
             ),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(
+            if (LocalUseMiuix.current) 8.dp else 4.dp,
+        ),
     ) {
         when (val connection = state.connection) {
             is ConnectionState.Connected -> ControlPanel(state, device)
@@ -294,7 +297,7 @@ private fun ControlPanel(
     val overclock = voltage >= 14f
     var preOverclockVoltage by remember { mutableFloatStateOf(5f) }
 
-    val modelLabel = if (state.model == DeviceModel.UNKNOWN) "自动识别中" else state.model.displayName
+    val firmwareLabel = state.firmware.ifBlank { "固件未知" }
     val gradeLabel = when {
         overclock -> "超频"
         tempControl -> "温控"
@@ -304,8 +307,7 @@ private fun ControlPanel(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SkinStatusCard(
             title = "已连接 ${state.deviceName.ifBlank { "散热器" }}",
-            subtitle = "$modelLabel · $gradeLabel · " +
-                String.format(Locale.US, "%.1f V", state.float("slider_voltage", 5f)),
+            subtitle = "$firmwareLabel · $gradeLabel",
             detail = null,
             icon = Icons.Rounded.Check,
             tone = SkinStatusTone.ACTIVE,
@@ -360,6 +362,7 @@ private fun ControlPanel(
                     grade in 1..3 -> grade - 1
                     else -> -1
                 },
+                center = true,
             ) { index ->
                 scope.launch {
                     if (overclock) device.writeRegister("slider_voltage", preOverclockVoltage)
@@ -429,9 +432,6 @@ private fun ControlPanel(
             grade in 1..3 -> "$grade 档"
             else -> "—"
         })
-        SkinInfoRow("输出电压", String.format(Locale.US, "%.1f V", state.float("slider_voltage", 5f)))
-        val protocol = state.int("protocol", 0)
-        SkinInfoRow("固件协议", if (protocol in 1..254) "0x%02X".format(protocol) else "—")
     }
 
     if (state.model == DeviceModel.X8U) {

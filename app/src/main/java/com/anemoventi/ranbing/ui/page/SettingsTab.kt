@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.anemoventi.ranbing.BuildConfig
 import com.anemoventi.ranbing.ui.navigation.LocalNavigator
 import com.anemoventi.ranbing.ui.navigation.Route
+import com.anemoventi.ranbing.ui.theme.LocalUseMiuix
 import com.anemoventi.ranbing.ui.widgets.SkinNavRow
 import com.anemoventi.ranbing.ui.widgets.SkinSectionTitle
 
@@ -34,12 +35,14 @@ fun SettingsTab(outerPadding: PaddingValues) {
                 end = 16.dp,
                 bottom = outerPadding.calculateBottomPadding() + 8.dp,
             ),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(
+            if (LocalUseMiuix.current) 8.dp else 4.dp,
+        ),
     ) {
         SkinSectionTitle("个性化")
         SkinNavRow(
             title = "外观",
-            summary = "Material 3 / MIUIx、深色模式、动态取色",
+            summary = "界面风格与主题模式",
             icon = Icons.Rounded.Palette,
             onClick = { navigator.push(Route.Theme) },
         )

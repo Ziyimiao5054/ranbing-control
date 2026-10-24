@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,7 +37,9 @@ import com.anemoventi.ranbing.ui.widgets.SkinChoiceRow
 import com.anemoventi.ranbing.ui.widgets.SkinScaffold
 import com.anemoventi.ranbing.ui.widgets.SkinSectionTitle
 import com.anemoventi.ranbing.ui.widgets.SkinSwitchRow
+import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
+import top.yukonga.miuix.kmp.preference.WindowSpinnerPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.material3.Icon as M3Icon
 import androidx.compose.material3.MaterialTheme as M3MaterialTheme
@@ -64,66 +67,130 @@ fun ThemePage(
                 .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            SkinSectionTitle("主题风格")
-            SkinChoiceRow(
-                title = "跟随系统",
-                summary = "HyperOS / MIUI 使用 MIUIx，其它系统使用 Material 3",
-                selected = prefs.uiStyle == UiStyle.AUTO,
-                onClick = { settings.setUiStyle(UiStyle.AUTO) },
-            )
-            SkinChoiceRow(
-                title = "Google Material 3",
-                summary = "标准 Material Design 界面",
-                selected = prefs.uiStyle == UiStyle.MATERIAL3,
-                onClick = { settings.setUiStyle(UiStyle.MATERIAL3) },
-            )
-            SkinChoiceRow(
-                title = "MIUIx",
-                summary = "类 HyperOS 风格界面",
-                selected = prefs.uiStyle == UiStyle.MIUIX,
-                onClick = { settings.setUiStyle(UiStyle.MIUIX) },
-            )
+            if (LocalUseMiuix.current) {
+                MiuixThemeSettings(prefs, settings)
+            } else {
+                Material3ThemeSettings(prefs, settings)
+            }
+        }
+    }
+}
 
-            SkinSectionTitle("深色模式")
-            SkinChoiceRow(
-                title = "跟随系统",
-                selected = prefs.themeMode == ThemeMode.SYSTEM,
-                onClick = { settings.setThemeMode(ThemeMode.SYSTEM) },
-            )
-            SkinChoiceRow(
-                title = "浅色",
-                selected = prefs.themeMode == ThemeMode.LIGHT,
-                onClick = { settings.setThemeMode(ThemeMode.LIGHT) },
-            )
-            SkinChoiceRow(
-                title = "深色",
-                selected = prefs.themeMode == ThemeMode.DARK,
-                onClick = { settings.setThemeMode(ThemeMode.DARK) },
-            )
+@Composable
+private fun MiuixThemeSettings(prefs: SettingsState, settings: AppSettings) {
+    val styleIndex = when (prefs.uiStyle) {
+        UiStyle.AUTO -> 0
+        UiStyle.MATERIAL3 -> 1
+        UiStyle.MIUIX -> 2
+    }
+    val modeIndex = when (prefs.themeMode) {
+        ThemeMode.LIGHT -> 0
+        ThemeMode.DARK -> 1
+        ThemeMode.SYSTEM -> 2
+    }
+    val rowMargin = PaddingValues(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp)
+    SkinCard(contentPadding = 0.dp) {
+        WindowSpinnerPreference(
+            title = "主题风格",
+            items = listOf(
+                DropdownItem(title = "跟随系统"),
+                DropdownItem(title = "Material 3"),
+                DropdownItem(title = "MIUIx"),
+            ),
+            selectedIndex = styleIndex,
+            insideMargin = rowMargin,
+            onSelectedIndexChange = { index ->
+                settings.setUiStyle(
+                    when (index) {
+                        1 -> UiStyle.MATERIAL3
+                        2 -> UiStyle.MIUIX
+                        else -> UiStyle.AUTO
+                    },
+                )
+            },
+        )
+        WindowSpinnerPreference(
+            title = "主题模式",
+            items = listOf(
+                DropdownItem(title = "浅色主题"),
+                DropdownItem(title = "深色主题"),
+                DropdownItem(title = "跟随系统主题"),
+            ),
+            selectedIndex = modeIndex,
+            insideMargin = rowMargin,
+            onSelectedIndexChange = { index ->
+                settings.setThemeMode(
+                    when (index) {
+                        0 -> ThemeMode.LIGHT
+                        1 -> ThemeMode.DARK
+                        else -> ThemeMode.SYSTEM
+                    },
+                )
+            },
+        )
+    }
+}
 
-            SkinSectionTitle("主题色")
-            SkinSwitchRow(
-                title = "动态取色",
-                summary = "跟随壁纸取色",
-                checked = prefs.dynamicColor,
-                onCheckedChange = { settings.setDynamicColor(it) },
-            )
-            SkinCard {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    AccentOptions.forEach { color ->
-                        AccentSwatch(
-                            color = color,
-                            selected = prefs.accentColor == color,
-                            onClick = {
-                                settings.setAccentColor(color)
-                                if (prefs.dynamicColor) settings.setDynamicColor(false)
-                            },
-                        )
-                    }
-                }
+@Composable
+private fun Material3ThemeSettings(prefs: SettingsState, settings: AppSettings) {
+    SkinSectionTitle("主题风格")
+    SkinChoiceRow(
+        title = "跟随系统",
+        summary = "HyperOS / MIUI 使用 MIUIx，其它系统使用 Material 3",
+        selected = prefs.uiStyle == UiStyle.AUTO,
+        onClick = { settings.setUiStyle(UiStyle.AUTO) },
+    )
+    SkinChoiceRow(
+        title = "Google Material 3",
+        summary = "标准 Material Design 界面",
+        selected = prefs.uiStyle == UiStyle.MATERIAL3,
+        onClick = { settings.setUiStyle(UiStyle.MATERIAL3) },
+    )
+    SkinChoiceRow(
+        title = "MIUIx",
+        summary = "类 HyperOS 风格界面",
+        selected = prefs.uiStyle == UiStyle.MIUIX,
+        onClick = { settings.setUiStyle(UiStyle.MIUIX) },
+    )
+
+    SkinSectionTitle("深色模式")
+    SkinChoiceRow(
+        title = "跟随系统",
+        selected = prefs.themeMode == ThemeMode.SYSTEM,
+        onClick = { settings.setThemeMode(ThemeMode.SYSTEM) },
+    )
+    SkinChoiceRow(
+        title = "浅色",
+        selected = prefs.themeMode == ThemeMode.LIGHT,
+        onClick = { settings.setThemeMode(ThemeMode.LIGHT) },
+    )
+    SkinChoiceRow(
+        title = "深色",
+        selected = prefs.themeMode == ThemeMode.DARK,
+        onClick = { settings.setThemeMode(ThemeMode.DARK) },
+    )
+
+    SkinSectionTitle("主题色")
+    SkinSwitchRow(
+        title = "动态取色",
+        summary = "跟随壁纸取色",
+        checked = prefs.dynamicColor,
+        onCheckedChange = { settings.setDynamicColor(it) },
+    )
+    SkinCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            AccentOptions.forEach { color ->
+                AccentSwatch(
+                    color = color,
+                    selected = prefs.accentColor == color,
+                    onClick = {
+                        settings.setAccentColor(color)
+                        if (prefs.dynamicColor) settings.setDynamicColor(false)
+                    },
+                )
             }
         }
     }

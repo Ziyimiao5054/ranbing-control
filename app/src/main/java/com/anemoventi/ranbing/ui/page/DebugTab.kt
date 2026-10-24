@@ -16,6 +16,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anemoventi.ranbing.device.DeviceRepository
 import com.anemoventi.ranbing.device.FrameDirection
 import com.anemoventi.ranbing.device.FrameLogEntry
+import com.anemoventi.ranbing.ui.theme.LocalUseMiuix
 import com.anemoventi.ranbing.ui.widgets.SkinCard
 import com.anemoventi.ranbing.ui.widgets.SkinMonoText
 import com.anemoventi.ranbing.ui.widgets.SkinSectionTitle
@@ -31,7 +32,9 @@ fun DebugTab(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(
+            if (LocalUseMiuix.current) 8.dp else 4.dp,
+        ),
         contentPadding = PaddingValues(
             start = 16.dp,
             end = 16.dp,

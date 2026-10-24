@@ -455,20 +455,15 @@ fun SkinCard(
 @Composable
 fun SkinSectionTitle(text: String, modifier: Modifier = Modifier) {
     if (LocalUseMiuix.current) {
-        MiuixSmallTitle(
-            text = text,
-            modifier = modifier,
-            textColor = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-            insideMargin = PaddingValues(start = 12.dp, top = 20.dp, end = 12.dp, bottom = 4.dp),
-        )
-    } else {
-        M3Text(
-            text = text,
-            modifier = modifier.padding(start = 12.dp, top = 20.dp, bottom = 4.dp),
-            style = M3MaterialTheme.typography.titleSmall,
-            color = M3MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        // MIUIx pages have no section captions; cards are separated by spacing only.
+        return
     }
+    M3Text(
+        text = text,
+        modifier = modifier.padding(start = 12.dp, top = 20.dp, bottom = 4.dp),
+        style = M3MaterialTheme.typography.titleSmall,
+        color = M3MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @Composable
@@ -940,12 +935,20 @@ fun SkinPillRow(
     options: List<String>,
     selectedIndex: Int,
     modifier: Modifier = Modifier,
+    center: Boolean = false,
     onSelect: (Int) -> Unit,
 ) {
-    Row(
-        modifier = modifier.horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
+    val rowModifier = if (center) {
+        modifier.fillMaxWidth()
+    } else {
+        modifier.horizontalScroll(rememberScrollState())
+    }
+    val arrangement = if (center) {
+        Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+    } else {
+        Arrangement.spacedBy(8.dp)
+    }
+    Row(modifier = rowModifier, horizontalArrangement = arrangement) {
         options.forEachIndexed { index, label ->
             if (LocalUseMiuix.current) {
                 MiuixButton(

@@ -1150,7 +1150,7 @@ fun SkinNavigationBar(
                             .size(width = 56.dp, height = 32.dp)
                             .background(
                                 color = if (selected) {
-                                    MiuixTheme.colorScheme.surfaceContainerHigh
+                                    MiuixTheme.colorScheme.primary.copy(alpha = 0.18f)
                                 } else {
                                     Color.Transparent
                                 },

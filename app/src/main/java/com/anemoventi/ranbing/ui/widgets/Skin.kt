@@ -36,6 +36,8 @@ import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button as M3Button
 import androidx.compose.material3.ButtonDefaults as M3ButtonDefaults
+import androidx.compose.material3.AlertDialog as M3AlertDialog
+import androidx.compose.material3.TextButton as M3TextButton
 import androidx.compose.material3.SwitchDefaults as M3SwitchDefaults
 import androidx.compose.material3.Card as M3Card
 import androidx.compose.material3.CardDefaults as M3CardDefaults
@@ -96,6 +98,7 @@ import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
 import top.yukonga.miuix.kmp.preference.ArrowPreference as MiuixArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.window.WindowDialog as MiuixWindowDialog
 
 data class SkinTab(val label: String, val icon: ImageVector)
 
@@ -509,6 +512,62 @@ fun SkinText(
                 SkinTextKind.CAPTION -> M3MaterialTheme.colorScheme.onSurfaceVariant
                 SkinTextKind.HEADLINE -> M3MaterialTheme.colorScheme.onBackground
                 else -> M3MaterialTheme.colorScheme.onSurface
+            },
+        )
+    }
+}
+
+@Composable
+fun SkinAlertDialog(
+    show: Boolean,
+    title: String,
+    message: String,
+    confirmText: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    dismissText: String = "取消",
+) {
+    if (!show) return
+    if (LocalUseMiuix.current) {
+        MiuixWindowDialog(
+            show = true,
+            title = title,
+            summary = message,
+            onDismissRequest = onDismiss,
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                SkinButton(
+                    text = dismissText,
+                    modifier = Modifier.weight(1f),
+                    containerColor = MiuixTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = MiuixTheme.colorScheme.onSurface,
+                    onClick = onDismiss,
+                )
+                SkinButton(
+                    text = confirmText,
+                    modifier = Modifier.weight(1f),
+                    containerColor = Color(0xFFD70014),
+                    onClick = onConfirm,
+                )
+            }
+        }
+    } else {
+        M3AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { M3Text(title) },
+            text = { M3Text(message) },
+            confirmButton = {
+                M3TextButton(onClick = onConfirm) {
+                    M3Text(confirmText, color = Color(0xFFD70014))
+                }
+            },
+            dismissButton = {
+                M3TextButton(onClick = onDismiss) { M3Text(dismissText) }
             },
         )
     }

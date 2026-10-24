@@ -72,7 +72,7 @@ fun MainPage(
                 when (page) {
                     0 -> ControlTab(device = device, prefs = prefs, settings = settings, outerPadding = outerPadding)
                     1 -> DebugTab(device = device, outerPadding = outerPadding)
-                    else -> SettingsTab(outerPadding = outerPadding)
+                    else -> SettingsTab(outerPadding = outerPadding, settings = settings)
                 }
             }
         }

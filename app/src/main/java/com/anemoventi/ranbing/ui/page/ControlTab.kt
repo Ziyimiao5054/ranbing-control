@@ -68,6 +68,7 @@ import com.anemoventi.ranbing.ui.widgets.SkinText
 import com.anemoventi.ranbing.ui.widgets.SkinTextKind
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import java.util.Locale
 
 private val OverclockRed = Color(0xFFD70014)
@@ -142,7 +143,7 @@ fun ControlTab(
         ),
     ) {
         when (val connection = state.connection) {
-            is ConnectionState.Connected -> ControlPanel(state, device)
+            is ConnectionState.Connected -> ControlPanel(state, device, prefs.experimentalOverclock)
             is ConnectionState.Connecting -> ConnectingPanel(device)
             else -> ScanPanel(
                 devices = devices,
@@ -287,6 +288,7 @@ private fun ConnectingPanel(device: DeviceRepository) {
 private fun ControlPanel(
     state: DeviceState,
     device: DeviceRepository,
+    experimental: Boolean,
 ) {
     val scope = rememberCoroutineScope()
     val powerOn = state.int("device_power_on", state.configInt("device_power_on", 1)) != 0
@@ -387,23 +389,50 @@ private fun ControlPanel(
                 }
             }
             Spacer(Modifier.height(12.dp))
-            SkinButton(
-                text = if (overclock) "退出超频" else "超频",
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                containerColor = OverclockRed,
-                enabled = !powerMode,
-                onClick = {
-                    device.setPowerTarget(null)
-                    scope.launch {
-                        if (overclock) {
+            val isMaxOverclock = voltage >= 14.5f
+            val applyOverclock: (Float) -> Unit = { target ->
+                device.setPowerTarget(null)
+                scope.launch {
+                    when {
+                        overclock && abs(voltage - target) < 0.6f ->
                             device.writeRegister("slider_voltage", preOverclockVoltage)
-                        } else {
+                        overclock -> device.writeRegister("slider_voltage", target)
+                        else -> {
                             preOverclockVoltage = voltage.coerceIn(2f, 12f)
-                            device.writeRegister("slider_voltage", overclockVoltage(state.firmware))
+                            device.writeRegister("slider_voltage", target)
                         }
                     }
-                },
-            )
+                }
+            }
+            if (experimental) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    SkinButton(
+                        text = if (overclock && !isMaxOverclock) "退出超频" else "超频",
+                        modifier = Modifier.weight(1f).height(52.dp),
+                        containerColor = OverclockRed,
+                        enabled = !powerMode,
+                        onClick = { applyOverclock(overclockVoltage(state.firmware)) },
+                    )
+                    SkinButton(
+                        text = if (isMaxOverclock) "退出超频" else "超频Max(65w)",
+                        modifier = Modifier.weight(1f).height(52.dp),
+                        containerColor = Color(0xFF8B0000),
+                        enabled = !powerMode,
+                        onClick = { applyOverclock(15f) },
+                    )
+                }
+            } else {
+                SkinButton(
+                    text = if (overclock) "退出超频" else "超频",
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    containerColor = OverclockRed,
+                    enabled = !powerMode,
+                    onClick = { applyOverclock(overclockVoltage(state.firmware)) },
+                )
+            }
             if (tempControl) {
                 SyncedSlider(
                     title = "目标温度",

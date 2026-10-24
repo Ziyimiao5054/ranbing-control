@@ -18,6 +18,7 @@ data class SettingsState(
     val lastDeviceName: String? = null,
     val lastDeviceModel: String? = null,
     val lastDeviceFirmware: String? = null,
+    val experimentalOverclock: Boolean = false,
 )
 
 /**
@@ -39,6 +40,7 @@ class AppSettings(context: Context) {
         lastDeviceName = prefs.getString(KEY_LAST_DEVICE_NAME, null),
         lastDeviceModel = prefs.getString(KEY_LAST_DEVICE_MODEL, null),
         lastDeviceFirmware = prefs.getString(KEY_LAST_DEVICE_FIRMWARE, null),
+        experimentalOverclock = prefs.getBoolean(KEY_EXPERIMENTAL_OVERCLOCK, false),
     )
 
     fun setUiStyle(value: UiStyle) = mutate { it.copy(uiStyle = value) }
@@ -48,6 +50,8 @@ class AppSettings(context: Context) {
     fun setDynamicColor(value: Boolean) = mutate { it.copy(dynamicColor = value) }
 
     fun setAccentColor(value: Long) = mutate { it.copy(accentColor = value) }
+
+    fun setExperimentalOverclock(value: Boolean) = mutate { it.copy(experimentalOverclock = value) }
 
     fun setLastDevice(id: String?, name: String?, model: String? = null, firmware: String? = null) = mutate {
         it.copy(
@@ -69,6 +73,7 @@ class AppSettings(context: Context) {
             .putString(KEY_LAST_DEVICE_NAME, next.lastDeviceName)
             .putString(KEY_LAST_DEVICE_MODEL, next.lastDeviceModel)
             .putString(KEY_LAST_DEVICE_FIRMWARE, next.lastDeviceFirmware)
+            .putBoolean(KEY_EXPERIMENTAL_OVERCLOCK, next.experimentalOverclock)
             .apply()
         _state.value = next
     }
@@ -86,5 +91,6 @@ class AppSettings(context: Context) {
         const val KEY_LAST_DEVICE_NAME = "last_device_name"
         const val KEY_LAST_DEVICE_MODEL = "last_device_model"
         const val KEY_LAST_DEVICE_FIRMWARE = "last_device_firmware"
+        const val KEY_EXPERIMENTAL_OVERCLOCK = "experimental_overclock"
     }
 }

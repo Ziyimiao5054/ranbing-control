@@ -379,7 +379,9 @@ fun SkinStatusCard(
                     )
                     Spacer(Modifier.height(2.dp))
                     MiuixText(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 2.dp),
                         text = subtitle,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,

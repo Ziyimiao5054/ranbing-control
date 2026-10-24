@@ -334,7 +334,7 @@ fun SkinStatusCard(
             SkinStatusTone.NEUTRAL -> MiuixTheme.colorScheme.surfaceContainer
         }
         val accent = when (tone) {
-            SkinStatusTone.ACTIVE -> Color(0xFF36D167)
+            SkinStatusTone.ACTIVE -> Color(0xFF3CD36B)
             SkinStatusTone.ERROR -> Color(0xFFD13636)
             SkinStatusTone.NEUTRAL -> MiuixTheme.colorScheme.onSurfaceVariantSummary
         }

@@ -38,7 +38,7 @@ fun DebugTab(
         contentPadding = PaddingValues(
             start = 16.dp,
             end = 16.dp,
-            top = 4.dp,
+            top = 0.dp,
             bottom = outerPadding.calculateBottomPadding() + 8.dp,
         ),
     ) {

@@ -3,10 +3,7 @@
 package com.anemoventi.ranbing.ui.page
 
 import android.Manifest
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +24,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BluetoothDisabled
 import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Layers
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anemoventi.ranbing.ble.ConnectionState
@@ -56,8 +51,6 @@ import com.anemoventi.ranbing.device.int
 import com.anemoventi.ranbing.device.long
 import com.anemoventi.ranbing.protocol.DeviceModel
 import com.anemoventi.ranbing.ui.theme.LocalUseMiuix
-import com.anemoventi.ranbing.overlay.OverlayService
-import com.anemoventi.ranbing.ui.widgets.SkinIconAction
 import com.anemoventi.ranbing.ui.widgets.SkinButton
 import com.anemoventi.ranbing.ui.widgets.SkinCard
 import com.anemoventi.ranbing.ui.widgets.SkinInfoRow

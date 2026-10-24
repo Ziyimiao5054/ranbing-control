@@ -296,7 +296,9 @@ private fun ControlPanel(
     val voltage = state.float("slider_voltage", 5f)
     val overclock = voltage >= 14f
     var preOverclockVoltage by remember { mutableFloatStateOf(5f) }
+    var prePowerVoltage by remember { mutableFloatStateOf(5f) }
     val powerTarget by device.powerTarget.collectAsStateWithLifecycle()
+    val powerMode = powerTarget != null
     var powerSlider by remember { mutableFloatStateOf(powerTarget ?: 0f) }
     var powerInput by remember { mutableStateOf("") }
     LaunchedEffect(powerTarget) {
@@ -371,7 +373,9 @@ private fun ControlPanel(
                     else -> -1
                 },
                 center = true,
+                enabled = !powerMode,
             ) { index ->
+                device.setPowerTarget(null)
                 scope.launch {
                     if (overclock) device.writeRegister("slider_voltage", preOverclockVoltage)
                     if (index < 3) {
@@ -381,13 +385,13 @@ private fun ControlPanel(
                         device.writeRegister("temp_control_enable", 1)
                     }
                 }
-                if (index == 3) device.setPowerTarget(null)
             }
             Spacer(Modifier.height(12.dp))
             SkinButton(
                 text = if (overclock) "退出超频" else "超频",
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 containerColor = OverclockRed,
+                enabled = !powerMode,
                 onClick = {
                     device.setPowerTarget(null)
                     scope.launch {
@@ -429,7 +433,10 @@ private fun ControlPanel(
             onValueChange = { powerSlider = it },
             valueRange = 0f..40f,
             steps = 39,
-            onValueChangeFinished = { device.setPowerTarget(powerSlider) },
+            onValueChangeFinished = {
+                if (powerTarget == null) prePowerVoltage = voltage
+                device.setPowerTarget(powerSlider)
+            },
             modifier = Modifier.fillMaxWidth(),
         )
         Row(
@@ -447,12 +454,15 @@ private fun ControlPanel(
                 suffix = "W",
             )
             SkinButton("应用") {
-                powerInput.toFloatOrNull()?.let { device.setPowerTarget(it) }
+                powerInput.toFloatOrNull()?.let {
+                    if (powerTarget == null) prePowerVoltage = voltage
+                    device.setPowerTarget(it)
+                }
             }
             if (powerTarget != null) {
                 SkinButton("关闭") {
                     device.setPowerTarget(null)
-                    scope.launch { device.writeRegister("slider_voltage", 0f) }
+                    scope.launch { device.writeRegister("slider_voltage", prePowerVoltage) }
                 }
             }
         }

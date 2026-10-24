@@ -961,13 +961,14 @@ fun SkinPillRow(
     selectedIndex: Int,
     modifier: Modifier = Modifier,
     center: Boolean = false,
+    enabled: Boolean = true,
     onSelect: (Int) -> Unit,
 ) {
     if (center) {
         Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 options.forEachIndexed { index, label ->
-                    PillItem(label, index == selectedIndex) { onSelect(index) }
+                    PillItem(label, index == selectedIndex, enabled) { onSelect(index) }
                 }
             }
         }
@@ -977,17 +978,18 @@ fun SkinPillRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             options.forEachIndexed { index, label ->
-                PillItem(label, index == selectedIndex) { onSelect(index) }
+                PillItem(label, index == selectedIndex, enabled) { onSelect(index) }
             }
         }
     }
 }
 
 @Composable
-private fun PillItem(label: String, selected: Boolean, onClick: () -> Unit) {
+private fun PillItem(label: String, selected: Boolean, enabled: Boolean, onClick: () -> Unit) {
     if (LocalUseMiuix.current) {
         MiuixButton(
             onClick = onClick,
+            enabled = enabled,
             colors = if (selected) {
                 MiuixButtonDefaults.buttonColorsPrimary()
             } else {
@@ -999,6 +1001,7 @@ private fun PillItem(label: String, selected: Boolean, onClick: () -> Unit) {
     } else {
         M3FilterChip(
             selected = selected,
+            enabled = enabled,
             onClick = onClick,
             label = { M3Text(label) },
         )

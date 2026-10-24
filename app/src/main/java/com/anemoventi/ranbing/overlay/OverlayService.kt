@@ -15,9 +15,9 @@ import android.view.WindowManager
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.anemoventi.ranbing.App
+import com.anemoventi.ranbing.ble.ConnectionState
 import com.anemoventi.ranbing.device.DeviceState
 import com.anemoventi.ranbing.device.float
-import com.anemoventi.ranbing.ble.ConnectionState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -31,6 +31,9 @@ class OverlayService : Service() {
         @Volatile
         var isRunning = false
             private set
+        private const val PREFS = "overlay_position"
+        private const val KEY_X = "x"
+        private const val KEY_Y = "y"
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -39,6 +42,7 @@ class OverlayService : Service() {
     private lateinit var coldView: TextView
     private lateinit var hotView: TextView
     private lateinit var powerView: TextView
+    private var params: WindowManager.LayoutParams? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -54,6 +58,12 @@ class OverlayService : Service() {
 
     override fun onDestroy() {
         isRunning = false
+        params?.let {
+            getSharedPreferences(PREFS, MODE_PRIVATE).edit()
+                .putInt(KEY_X, it.x)
+                .putInt(KEY_Y, it.y)
+                .apply()
+        }
         scope.cancel()
         root?.let { runCatching { windowManager.removeView(it) } }
         root = null
@@ -63,27 +73,18 @@ class OverlayService : Service() {
     private fun show() {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(12), dp(16), dp(12))
-            minimumWidth = dp(148)
+            setPadding(dp(12), dp(9), dp(12), dp(9))
             background = GradientDrawable().apply {
-                cornerRadius = dp(16).toFloat()
-                setColor(0xE6101010.toInt())
-                setStroke(dp(1), 0x33FFFFFF)
+                cornerRadius = dp(12).toFloat()
+                setColor(0xE6F2F2F2.toInt())
             }
         }
-        card.addView(
-            TextView(this).apply {
-                text = "记录"
-                setTextColor(0xFF9AA0A6.toInt())
-                textSize = 11f
-                letterSpacing = 0.08f
-            },
-        )
         coldView = addRow(card, "冷端")
         hotView = addRow(card, "热端")
         powerView = addRow(card, "功率")
 
-        val params = WindowManager.LayoutParams(
+        val prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
+        val layout = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
@@ -91,10 +92,11 @@ class OverlayService : Service() {
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT,
         ).apply {
-            gravity = Gravity.TOP or Gravity.END
-            x = dp(12)
-            y = dp(96)
+            gravity = Gravity.TOP or Gravity.START
+            x = prefs.getInt(KEY_X, dp(12))
+            y = prefs.getInt(KEY_Y, dp(120))
         }
+        params = layout
 
         card.setOnTouchListener(object : View.OnTouchListener {
             private var downX = 0f
@@ -107,14 +109,17 @@ class OverlayService : Service() {
                     MotionEvent.ACTION_DOWN -> {
                         downX = event.rawX
                         downY = event.rawY
-                        startX = params.x
-                        startY = params.y
+                        startX = layout.x
+                        startY = layout.y
                         return true
                     }
                     MotionEvent.ACTION_MOVE -> {
-                        params.x = startX - (event.rawX - downX).toInt()
-                        params.y = startY + (event.rawY - downY).toInt()
-                        runCatching { windowManager.updateViewLayout(card, params) }
+                        val metrics = resources.displayMetrics
+                        val maxX = (metrics.widthPixels - card.width).coerceAtLeast(0)
+                        val maxY = (metrics.heightPixels - card.height).coerceAtLeast(0)
+                        layout.x = (startX + (event.rawX - downX).toInt()).coerceIn(0, maxX)
+                        layout.y = (startY + (event.rawY - downY).toInt()).coerceIn(0, maxY)
+                        runCatching { windowManager.updateViewLayout(card, layout) }
                         return true
                     }
                 }
@@ -122,7 +127,7 @@ class OverlayService : Service() {
             }
         })
 
-        runCatching { windowManager.addView(card, params) }
+        runCatching { windowManager.addView(card, layout) }
             .onFailure {
                 stopSelf()
                 return
@@ -133,22 +138,28 @@ class OverlayService : Service() {
     private fun addRow(parent: LinearLayout, label: String): TextView {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(0, dp(8), 0, 0)
+            setPadding(0, dp(4), 0, 0)
         }
         row.addView(
             TextView(this).apply {
                 text = label
-                setTextColor(0xFF9AA0A6.toInt())
-                textSize = 12f
+                setTextColor(0xFF5F6368.toInt())
+                textSize = 11f
             },
             LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f),
         )
         val value = TextView(this).apply {
-            setTextColor(Color.WHITE)
-            textSize = 15f
+            setTextColor(0xFF1C1C1C.toInt())
+            textSize = 13f
             typeface = Typeface.MONOSPACE
         }
-        row.addView(value)
+        row.addView(
+            value,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply { leftMargin = dp(6) },
+        )
         parent.addView(row)
         return value
     }

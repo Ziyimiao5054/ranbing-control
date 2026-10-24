@@ -129,7 +129,8 @@ fun SkinScaffold(
                 MiuixTopAppBar(
                     title = title,
                     largeTitle = title,
-                    titlePadding = 33.dp,
+                    titlePadding = 26.dp,
+                    navigationIconPadding = 5.dp,
                     scrollBehavior = behavior,
                     navigationIcon = {
                         if (onBack != null) {

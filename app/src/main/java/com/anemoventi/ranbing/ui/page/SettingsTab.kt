@@ -67,8 +67,8 @@ fun SettingsTab(outerPadding: PaddingValues, settings: AppSettings) {
 
         SkinSectionTitle("实验性功能")
         SkinSwitchRow(
-            title = "超频 Max（15 V）",
-            summary = "解锁 15 V 超频，峰值功率约 60 W",
+            title = "超频 Max（14.7 V）",
+            summary = "解锁 14.7 V 超频，峰值功率约 60 W",
             checked = prefs.experimentalOverclock,
             onCheckedChange = { on ->
                 if (on) showWarning = true else settings.setExperimentalOverclock(false)
@@ -79,7 +79,7 @@ fun SettingsTab(outerPadding: PaddingValues, settings: AppSettings) {
     SkinAlertDialog(
         show = showWarning,
         title = "高风险操作",
-        message = "15 V 超频高于官方对 V1.3 的 14 V 限制，峰值功率可达 60 W。\n\n" +
+        message = "14.7 V 超频高于官方对 V1.3 的 14 V 限制，峰值功率约 60 W。\n\n" +
             "可能导致制冷片过热、充电头过载、电池或主板加速老化，甚至硬件损坏。\n\n" +
             "请确认散热和电源余量充足再开启，造成的损坏需自行承担。",
         confirmText = "我已了解，开启",

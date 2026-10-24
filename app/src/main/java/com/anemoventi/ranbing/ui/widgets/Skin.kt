@@ -35,6 +35,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.Button as M3Button
 import androidx.compose.material3.ButtonDefaults as M3ButtonDefaults
 import androidx.compose.material3.AlertDialog as M3AlertDialog
@@ -67,6 +68,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -230,23 +232,34 @@ fun SkinTabPage(
     if (LocalUseMiuix.current) {
         // The reference app uses the Material 3 large flexible bar even on MIUIx.
         val behavior = M3TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-        M3MaterialTheme(
-            colorScheme = darkColorScheme(
+        val background = MiuixTheme.colorScheme.background
+        val onBackground = MiuixTheme.colorScheme.onBackground
+        val scheme = if (background.luminance() < 0.5f) {
+            darkColorScheme(
                 primary = Color(0xFF287AF9),
-                background = Color.Black,
-                surface = Color.Black,
-                onBackground = Color.White,
-                onSurface = Color.White,
-            ),
-        ) {
+                background = background,
+                surface = background,
+                onBackground = onBackground,
+                onSurface = onBackground,
+            )
+        } else {
+            lightColorScheme(
+                primary = Color(0xFF287AF9),
+                background = background,
+                surface = background,
+                onBackground = onBackground,
+                onSurface = onBackground,
+            )
+        }
+        M3MaterialTheme(colorScheme = scheme) {
             Column(modifier = Modifier.fillMaxSize()) {
                 M3LargeFlexibleTopAppBar(
                     title = { M3Text(title) },
                     scrollBehavior = behavior,
                     actions = { actions() },
                     colors = M3TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Black,
-                        scrolledContainerColor = Color.Black,
+                        containerColor = background,
+                        scrolledContainerColor = background,
                     ),
                 )
                 Box(
@@ -643,7 +656,7 @@ fun SkinPromptDialog(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     SkinButton(
-                        text = "鍙栨秷",
+                        text = "取消",
                         modifier = Modifier.weight(1f),
                         containerColor = MiuixTheme.colorScheme.surfaceContainerHigh,
                         contentColor = MiuixTheme.colorScheme.onSurface,
@@ -678,7 +691,7 @@ fun SkinPromptDialog(
                 M3TextButton(onClick = onConfirm) { M3Text(confirmText) }
             },
             dismissButton = {
-                M3TextButton(onClick = onDismiss) { M3Text("鍙栨秷") }
+                M3TextButton(onClick = onDismiss) { M3Text("取消") }
             },
         )
     }
@@ -692,7 +705,7 @@ fun SkinAlertDialog(
     confirmText: String,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
-    dismissText: String = "鍙栨秷",
+    dismissText: String = "取消",
 ) {
     if (!show) return
     if (LocalUseMiuix.current) {

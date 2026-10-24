@@ -413,14 +413,14 @@ private fun ControlPanel(
                         text = if (overclock && !isMaxOverclock) "退出超频" else "超频",
                         modifier = Modifier.weight(1f).height(52.dp),
                         containerColor = OverclockRed,
-                        enabled = !powerMode,
+                        enabled = !powerMode && !isMaxOverclock,
                         onClick = { applyOverclock(overclockVoltage(state.firmware)) },
                     )
                     SkinButton(
                         text = if (isMaxOverclock) "退出超频" else "超频Max(65w)",
                         modifier = Modifier.weight(1f).height(52.dp),
                         containerColor = Color(0xFF8B0000),
-                        enabled = !powerMode,
+                        enabled = !powerMode && !(overclock && !isMaxOverclock),
                         onClick = { applyOverclock(15f) },
                     )
                 }

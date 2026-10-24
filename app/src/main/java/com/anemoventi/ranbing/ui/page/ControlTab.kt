@@ -270,7 +270,7 @@ private fun ConnectingPanel(device: DeviceRepository) {
     SkinSectionTitle("连接中")
     SkinCard {
         SkinText("正在连接散热器…", SkinTextKind.TITLE)
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(6.dp))
         SkinButton("取消", onClick = { device.disconnect() })
     }
 }
@@ -287,9 +287,13 @@ private fun ControlPanel(
     val tempControl = state.int("temp_control_enable", state.configInt("temp_control_enable", 0)) != 0
     val timerRunning = state.int("timer_running", 0) != 0
     val countdown = state.long("timer_countdown", 0)
+    val voltage = state.float("slider_voltage", 5f)
+    val overclock = voltage >= 14f
+    var preOverclockVoltage by remember { mutableFloatStateOf(5f) }
 
     val modelLabel = if (state.model == DeviceModel.UNKNOWN) "自动识别中" else state.model.displayName
     val gradeLabel = when {
+        overclock -> "超频"
         tempControl -> "温控"
         grade in 1..3 -> "$grade 档"
         else -> "—"
@@ -346,19 +350,30 @@ private fun ControlPanel(
         SkinSectionTitle("档位")
         SkinCard {
             SkinPillRow(
-                options = listOf("1 档", "2 档", "3 档", "温控"),
+                options = listOf("1 档", "2 档", "3 档", "温控", "超频"),
                 selectedIndex = when {
+                    overclock -> 4
                     tempControl -> 3
                     grade in 1..3 -> grade - 1
                     else -> -1
                 },
             ) { index ->
                 scope.launch {
-                    if (index < 3) {
-                        device.writeRegister("key_grade", index + 1)
-                        device.writeRegister("temp_control_enable", 0)
+                    if (index == 4) {
+                        if (overclock) {
+                            device.writeRegister("slider_voltage", preOverclockVoltage)
+                        } else {
+                            preOverclockVoltage = voltage.coerceIn(2f, 12f)
+                            device.writeRegister("slider_voltage", 15f)
+                        }
                     } else {
-                        device.writeRegister("temp_control_enable", 1)
+                        if (overclock) device.writeRegister("slider_voltage", preOverclockVoltage)
+                        if (index < 3) {
+                            device.writeRegister("key_grade", index + 1)
+                            device.writeRegister("temp_control_enable", 0)
+                        } else {
+                            device.writeRegister("temp_control_enable", 1)
+                        }
                     }
                 }
             }
@@ -399,6 +414,7 @@ private fun ControlPanel(
     SkinCard {
         SkinInfoRow("设备状态", if (powerOn) "运行中" else "已关机")
         SkinInfoRow("当前档位", when {
+            overclock -> "超频"
             tempControl -> "温控"
             grade in 1..3 -> "$grade 档"
             else -> "—"

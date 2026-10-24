@@ -465,85 +465,120 @@ private fun ControlPanel(
                     onClick = { applyOverclock(overclockVoltage(state.firmware)) },
                 )
             }
-            if (tempControl) {
-                SyncedSlider(
-                    title = "目标温度",
-                    statusValue = state.float("temp_target"),
-                    range = -25f..25f,
-                    format = { String.format(Locale.US, "%.0f °C", it) },
-                ) { value -> scope.launch { device.writeRegister("temp_target", value) } }
-            }
         }
     }
 
     SkinSectionTitle("制冷功率")
     SkinCard {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            SkinText("目标功率", SkinTextKind.TITLE)
-            SkinText(
-                if (powerTarget == null) "未启用" else String.format(Locale.US, "%.0f W", powerTarget),
-                SkinTextKind.TITLE,
-            )
-        }
-        SkinSlider(
-            value = powerSlider,
-            onValueChange = { powerSlider = it },
-            valueRange = 0f..40f,
-            steps = 39,
-            onValueChangeFinished = {
-                if (powerTarget == null) prePowerVoltage = voltage
-                device.setPowerTarget(powerSlider)
-            },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            horizontalArrangement = Arrangement.End,
-        ) {
-            SkinText("W", SkinTextKind.CAPTION)
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            SkinNumberField(
-                value = powerInput,
-                onValueChange = { text ->
-                    powerInput = text.filter { it.isDigit() || it == '.' }.take(4)
+        if (tempControl) {
+            val storedTemp = state.float("temp_target")
+            var tempDraft by remember { mutableFloatStateOf(storedTemp) }
+            var tempDragging by remember { mutableStateOf(false) }
+            LaunchedEffect(storedTemp) {
+                if (!tempDragging) tempDraft = storedTemp
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                SkinText("目标温度", SkinTextKind.TITLE)
+                SkinText(
+                    String.format(Locale.US, "%.1f °C", tempDraft),
+                    SkinTextKind.TITLE,
+                )
+            }
+            SkinSlider(
+                value = tempDraft,
+                onValueChange = {
+                    tempDragging = true
+                    tempDraft = it
                 },
-                modifier = Modifier.weight(1f),
-                placeholder = "0–40",
+                valueRange = -25f..25f,
+                steps = 99,
+                onValueChangeFinished = {
+                    tempDragging = false
+                    scope.launch { device.writeRegister("temp_target", tempDraft) }
+                },
+                modifier = Modifier.fillMaxWidth(),
             )
-            SkinButton("应用") {
-                powerInput.toFloatOrNull()?.let {
+        } else {
+            var powerDragging by remember { mutableStateOf(false) }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                SkinText("目标功率", SkinTextKind.TITLE)
+                SkinText(
+                    when {
+                        powerTarget != null -> String.format(Locale.US, "%.0f W", powerSlider)
+                        powerDragging -> String.format(Locale.US, "%.0f W", powerSlider)
+                        else -> "未启用"
+                    },
+                    SkinTextKind.TITLE,
+                )
+            }
+            SkinSlider(
+                value = powerSlider,
+                onValueChange = {
+                    powerDragging = true
+                    powerSlider = it
+                },
+                valueRange = 0f..40f,
+                steps = 39,
+                onValueChangeFinished = {
+                    powerDragging = false
                     if (powerTarget == null) prePowerVoltage = voltage
-                    device.setPowerTarget(it)
+                    device.setPowerTarget(powerSlider)
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                SkinText("W", SkinTextKind.CAPTION)
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                SkinNumberField(
+                    value = powerInput,
+                    onValueChange = { text ->
+                        powerInput = text.filter { it.isDigit() || it == '.' }.take(4)
+                    },
+                    modifier = Modifier.weight(1f),
+                    placeholder = "0–40",
+                )
+                SkinButton("应用") {
+                    powerInput.toFloatOrNull()?.let {
+                        if (powerTarget == null) prePowerVoltage = voltage
+                        device.setPowerTarget(it)
+                    }
+                }
+                if (powerTarget != null) {
+                    SkinButton("关闭") {
+                        device.setPowerTarget(null)
+                        scope.launch { device.writeRegister("slider_voltage", prePowerVoltage) }
+                    }
                 }
             }
             if (powerTarget != null) {
-                SkinButton("关闭") {
-                    device.setPowerTarget(null)
-                    scope.launch { device.writeRegister("slider_voltage", prePowerVoltage) }
-                }
+                SkinText(
+                    "实测 %.1f W · 电压 %.1f V".format(
+                        state.float("power"),
+                        state.float("slider_voltage", 5f),
+                    ),
+                    SkinTextKind.CAPTION,
+                )
             }
-        }
-        if (powerTarget != null) {
-            SkinText(
-                "实测 %.1f W · 电压 %.1f V".format(
-                    state.float("power"),
-                    state.float("slider_voltage", 5f),
-                ),
-                SkinTextKind.CAPTION,
-            )
         }
     }
 

@@ -230,7 +230,11 @@ fun SkinTabPage(
                     .fillMaxSize()
                     .nestedScroll(behavior.nestedScrollConnection),
             ) {
-                Box(modifier = Modifier.fillMaxSize().padding(bottom = bottom)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 12.dp, bottom = bottom),
+                ) {
                     content()
                 }
             }
@@ -938,37 +942,45 @@ fun SkinPillRow(
     center: Boolean = false,
     onSelect: (Int) -> Unit,
 ) {
-    val rowModifier = if (center) {
-        modifier.fillMaxWidth()
-    } else {
-        modifier.horizontalScroll(rememberScrollState())
-    }
-    val arrangement = if (center) {
-        Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
-    } else {
-        Arrangement.spacedBy(8.dp)
-    }
-    Row(modifier = rowModifier, horizontalArrangement = arrangement) {
-        options.forEachIndexed { index, label ->
-            if (LocalUseMiuix.current) {
-                MiuixButton(
-                    onClick = { onSelect(index) },
-                    colors = if (index == selectedIndex) {
-                        MiuixButtonDefaults.buttonColorsPrimary()
-                    } else {
-                        MiuixButtonDefaults.buttonColors()
-                    },
-                ) {
-                    MiuixText(label)
+    if (center) {
+        Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                options.forEachIndexed { index, label ->
+                    PillItem(label, index == selectedIndex) { onSelect(index) }
                 }
-            } else {
-                M3FilterChip(
-                    selected = index == selectedIndex,
-                    onClick = { onSelect(index) },
-                    label = { M3Text(label) },
-                )
             }
         }
+    } else {
+        Row(
+            modifier = modifier.horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            options.forEachIndexed { index, label ->
+                PillItem(label, index == selectedIndex) { onSelect(index) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PillItem(label: String, selected: Boolean, onClick: () -> Unit) {
+    if (LocalUseMiuix.current) {
+        MiuixButton(
+            onClick = onClick,
+            colors = if (selected) {
+                MiuixButtonDefaults.buttonColorsPrimary()
+            } else {
+                MiuixButtonDefaults.buttonColors()
+            },
+        ) {
+            MiuixText(label)
+        }
+    } else {
+        M3FilterChip(
+            selected = selected,
+            onClick = onClick,
+            label = { M3Text(label) },
+        )
     }
 }
 

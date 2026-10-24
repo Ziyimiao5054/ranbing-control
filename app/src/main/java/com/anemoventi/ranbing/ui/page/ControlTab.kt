@@ -21,7 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BluetoothDisabled
-import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -291,8 +291,6 @@ private fun ControlPanel(
     val fanLed = state.int("FAN_LED", state.configInt("FAN_LED", 0)) != 0
     val grade = state.int("key_grade", state.configInt("key_grade", 0))
     val tempControl = state.int("temp_control_enable", state.configInt("temp_control_enable", 0)) != 0
-    val timerRunning = state.int("timer_running", 0) != 0
-    val countdown = state.long("timer_countdown", 0)
     val voltage = state.float("slider_voltage", 5f)
     val overclock = voltage >= 14f
     var preOverclockVoltage by remember { mutableFloatStateOf(5f) }
@@ -309,7 +307,7 @@ private fun ControlPanel(
             title = "已连接 ${state.deviceName.ifBlank { "散热器" }}",
             subtitle = "$firmwareLabel · $gradeLabel",
             detail = null,
-            icon = Icons.Rounded.Check,
+            icon = Icons.Rounded.CheckCircleOutline,
             tone = SkinStatusTone.ACTIVE,
         )
 
@@ -466,33 +464,6 @@ private fun ControlPanel(
             ) { value -> scope.launch { device.writeRegister("overheat_temp", value) } }
         }
     }
-
-    SkinSectionTitle("定时")
-    SkinCard {
-        SkinPillRow(
-            options = listOf("关闭", "15 分", "30 分", "60 分", "120 分"),
-            selectedIndex = if (timerRunning) -1 else 0,
-        ) { index ->
-            scope.launch {
-                if (index == 0) {
-                    device.writeRegister("timer_running", 0)
-                } else {
-                    val minutes = listOf(0, 15, 30, 60, 120)[index]
-                    device.writeRegister("timer_countdown", minutes * 60)
-                    delay(150)
-                    device.writeRegister("timer_running", 1)
-                }
-            }
-        }
-        SkinText(
-            when {
-                timerRunning && countdown > 0 -> "剩余 ${formatDuration(countdown)}"
-                timerRunning -> "定时运行中"
-                else -> "未启用定时"
-            },
-            SkinTextKind.CAPTION,
-        )
-    }
 }
 
 @Composable
@@ -526,14 +497,5 @@ private fun SyncedSlider(
     )
 }
 
-private fun formatDuration(seconds: Long): String {
-    val safe = seconds.coerceAtLeast(0)
-    val hours = safe / 3600
-    val minutes = (safe % 3600) / 60
-    val secs = safe % 60
-    return String.format(Locale.US, "%02d:%02d:%02d", hours, minutes, secs)
-}
-
-/** Unconnected NTC channels report ~-273.15 °C; show a dash instead of a bogus value. */
 private fun formatTemperature(value: Float): String =
     if (value < -100f) "--" else String.format(Locale.US, "%.1f", value)

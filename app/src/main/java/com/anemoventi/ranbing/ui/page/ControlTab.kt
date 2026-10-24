@@ -325,8 +325,9 @@ private fun ControlPanel(
     var powerSlider by remember { mutableFloatStateOf(powerTarget ?: 0f) }
     var powerInput by remember { mutableStateOf("") }
     LaunchedEffect(powerTarget) {
-        if (powerTarget != null) {
-            powerSlider = powerTarget!!.coerceIn(0f, 40f)
+        val target = powerTarget
+        if (target != null) {
+            powerSlider = target.coerceIn(0f, 40f)
         }
     }
 

@@ -115,7 +115,7 @@ private fun MiuixThemeScreen(
         topBar = {
             MiuixTopAppBar(
                 title = "主题设置",
-                modifier = Modifier.padding(start = 17.dp),
+                titlePadding = 33.dp,
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
                     MiuixIconButton(onClick = onBack) {

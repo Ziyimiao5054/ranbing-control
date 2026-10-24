@@ -310,7 +310,11 @@ private fun ControlPanel(
         maxRampJob = null
         maxRamping = false
         if (restore) {
-            scope.launch { device.writeRegister("slider_voltage", preOverclockVoltage) }
+            scope.launch {
+                device.writeRegister("slider_voltage", preOverclockVoltage)
+                device.writeRegister("key_grade", 3)
+                device.writeRegister("temp_control_enable", 0)
+            }
         }
     }
     val powerTarget by device.powerTarget.collectAsStateWithLifecycle()
@@ -440,8 +444,11 @@ private fun ControlPanel(
                 device.setPowerTarget(null)
                 scope.launch {
                     when {
-                        overclock && abs(voltage - target) < 0.6f ->
+                        overclock && abs(voltage - target) < 0.6f -> {
                             device.writeRegister("slider_voltage", preOverclockVoltage)
+                            device.writeRegister("key_grade", 3)
+                            device.writeRegister("temp_control_enable", 0)
+                        }
                         overclock -> device.writeRegister("slider_voltage", target)
                         else -> {
                             preOverclockVoltage = voltage.coerceIn(2f, 12f)
@@ -463,7 +470,7 @@ private fun ControlPanel(
                         onClick = { applyOverclock(overclockVoltage(state.firmware)) },
                     )
                     SkinButton(
-                        text = if (isMaxOverclock || maxRamping) "退出超频" else "超频Max(65w)",
+                        text = if (isMaxOverclock || maxRamping) "退出超频" else "超频Max(60w)",
                         modifier = Modifier.weight(1f).height(52.dp),
                         containerColor = Color(0xFF8B0000),
                         enabled = !powerMode && !(overclock && !isMaxOverclock),

@@ -67,9 +67,12 @@ import com.anemoventi.ranbing.ui.widgets.SkinStatusTone
 import com.anemoventi.ranbing.ui.widgets.SkinSwitchRow
 import com.anemoventi.ranbing.ui.widgets.SkinText
 import com.anemoventi.ranbing.ui.widgets.SkinTextKind
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.roundToInt
 import java.util.Locale
 
 private val OverclockRed = Color(0xFFD70014)
@@ -300,6 +303,16 @@ private fun ControlPanel(
     val overclock = voltage >= 14f
     var preOverclockVoltage by remember { mutableFloatStateOf(5f) }
     var prePowerVoltage by remember { mutableFloatStateOf(5f) }
+    var maxRampJob by remember { mutableStateOf<Job?>(null) }
+    var maxRamping by remember { mutableStateOf(false) }
+    fun stopMaxRamp(restore: Boolean) {
+        maxRampJob?.cancel()
+        maxRampJob = null
+        maxRamping = false
+        if (restore) {
+            scope.launch { device.writeRegister("slider_voltage", preOverclockVoltage) }
+        }
+    }
     val powerTarget by device.powerTarget.collectAsStateWithLifecycle()
     val powerMode = powerTarget != null
     var powerSlider by remember { mutableFloatStateOf(powerTarget ?: 0f) }
@@ -423,6 +436,7 @@ private fun ControlPanel(
             Spacer(Modifier.height(12.dp))
             val isMaxOverclock = voltage >= 14.5f
             val applyOverclock: (Float) -> Unit = { target ->
+                stopMaxRamp(restore = false)
                 device.setPowerTarget(null)
                 scope.launch {
                     when {
@@ -445,15 +459,33 @@ private fun ControlPanel(
                         text = if (overclock && !isMaxOverclock) "退出超频" else "超频",
                         modifier = Modifier.weight(1f).height(52.dp),
                         containerColor = OverclockRed,
-                        enabled = !powerMode && !isMaxOverclock,
+                        enabled = !powerMode && !isMaxOverclock && !maxRamping,
                         onClick = { applyOverclock(overclockVoltage(state.firmware)) },
                     )
                     SkinButton(
-                        text = if (isMaxOverclock) "退出超频" else "超频Max(65w)",
+                        text = if (isMaxOverclock || maxRamping) "退出超频" else "超频Max(65w)",
                         modifier = Modifier.weight(1f).height(52.dp),
                         containerColor = Color(0xFF8B0000),
                         enabled = !powerMode && !(overclock && !isMaxOverclock),
-                        onClick = { applyOverclock(15f) },
+                        onClick = {
+                            if (maxRamping || isMaxOverclock) {
+                                stopMaxRamp(restore = true)
+                            } else {
+                                device.setPowerTarget(null)
+                                preOverclockVoltage = voltage.coerceIn(2f, 12f)
+                                maxRamping = true
+                                maxRampJob = scope.launch {
+                                    var next = voltage.coerceIn(2f, 13.5f)
+                                    while (isActive && next < 14.7f) {
+                                        next = (next + 0.2f).coerceAtMost(14.7f)
+                                        val step = (next * 10f).roundToInt() / 10f
+                                        device.writeRegister("slider_voltage", step)
+                                        delay(250)
+                                    }
+                                    maxRamping = false
+                                }
+                            }
+                        },
                     )
                 }
             } else {
@@ -495,7 +527,7 @@ private fun ControlPanel(
                     tempDraft = it
                 },
                 valueRange = -25f..25f,
-                steps = 99,
+                steps = 499,
                 onValueChangeFinished = {
                     tempDragging = false
                     scope.launch { device.writeRegister("temp_target", tempDraft) }
@@ -529,6 +561,7 @@ private fun ControlPanel(
                 steps = 39,
                 onValueChangeFinished = {
                     powerDragging = false
+                    stopMaxRamp(restore = false)
                     if (powerTarget == null) prePowerVoltage = voltage
                     device.setPowerTarget(powerSlider)
                 },
@@ -559,6 +592,7 @@ private fun ControlPanel(
                 )
                 SkinButton("应用") {
                     powerInput.toFloatOrNull()?.let {
+                        stopMaxRamp(restore = false)
                         if (powerTarget == null) prePowerVoltage = voltage
                         device.setPowerTarget(it)
                     }

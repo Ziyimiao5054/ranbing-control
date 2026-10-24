@@ -3,10 +3,14 @@
 package com.anemoventi.ranbing.ui.page
 
 import android.Manifest
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BluetoothDisabled
 import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Layers
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anemoventi.ranbing.ble.ConnectionState
@@ -50,6 +56,8 @@ import com.anemoventi.ranbing.device.int
 import com.anemoventi.ranbing.device.long
 import com.anemoventi.ranbing.protocol.DeviceModel
 import com.anemoventi.ranbing.ui.theme.LocalUseMiuix
+import com.anemoventi.ranbing.overlay.OverlayService
+import com.anemoventi.ranbing.ui.widgets.SkinIconAction
 import com.anemoventi.ranbing.ui.widgets.SkinButton
 import com.anemoventi.ranbing.ui.widgets.SkinCard
 import com.anemoventi.ranbing.ui.widgets.SkinInfoRow
@@ -133,6 +141,9 @@ fun ControlTab(
         }
     }
 
+    val context = LocalContext.current
+    var overlayRunning by remember { mutableStateOf(OverlayService.isRunning) }
+    Box(modifier = Modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -160,6 +171,30 @@ fun ControlTab(
                 onRequestPermission = { permissionLauncher.launch(permissions) },
             )
         }
+    }
+    SkinIconAction(
+        icon = Icons.Rounded.Layers,
+        contentDescription = if (overlayRunning) "关闭悬浮窗" else "开启悬浮窗",
+        onClick = {
+            if (!Settings.canDrawOverlays(context)) {
+                context.startActivity(
+                    Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:${context.packageName}"),
+                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                )
+            } else if (OverlayService.isRunning) {
+                context.stopService(Intent(context, OverlayService::class.java))
+                overlayRunning = false
+            } else {
+                context.startService(Intent(context, OverlayService::class.java))
+                overlayRunning = true
+            }
+        },
+        modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(end = 16.dp, top = 8.dp),
+    )
     }
 }
 
@@ -542,6 +577,7 @@ private fun ControlPanel(
                 modifier = Modifier.fillMaxWidth(),
             )
         } else {
+            val miuix = LocalUseMiuix.current
             var powerDragging by remember { mutableStateOf(false) }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -572,15 +608,19 @@ private fun ControlPanel(
                     if (powerTarget == null) prePowerVoltage = voltage
                     device.setPowerTarget(powerSlider)
                 },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                SkinText("W", SkinTextKind.CAPTION)
+                    .padding(top = if (miuix) 10.dp else 0.dp),
+            )
+            if (!miuix) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    SkinText("W", SkinTextKind.CAPTION)
+                }
             }
             Row(
                 modifier = Modifier
@@ -589,14 +629,18 @@ private fun ControlPanel(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                SkinNumberField(
-                    value = powerInput,
-                    onValueChange = { text ->
-                        powerInput = text.filter { it.isDigit() || it == '.' }.take(4)
-                    },
-                    modifier = Modifier.weight(1f),
-                    placeholder = "0–40",
-                )
+                if (!miuix) {
+                    SkinNumberField(
+                        value = powerInput,
+                        onValueChange = { text ->
+                            powerInput = text.filter { it.isDigit() || it == '.' }.take(4)
+                        },
+                        modifier = Modifier.weight(1f),
+                        placeholder = "0–40",
+                    )
+                } else {
+                    Spacer(Modifier.weight(1f))
+                }
                 SkinButton("应用") {
                     powerInput.toFloatOrNull()?.let {
                         stopMaxRamp(restore = false)

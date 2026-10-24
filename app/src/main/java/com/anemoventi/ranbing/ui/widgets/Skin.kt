@@ -464,6 +464,28 @@ fun SkinCard(
 }
 
 @Composable
+fun SkinIconAction(
+    icon: ImageVector,
+    contentDescription: String?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (LocalUseMiuix.current) {
+        MiuixIconButton(onClick = onClick, modifier = modifier) {
+            MiuixIcon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                tint = MiuixTheme.colorScheme.onSurface,
+            )
+        }
+    } else {
+        M3FilledTonalIconButton(onClick = onClick, modifier = modifier) {
+            M3Icon(imageVector = icon, contentDescription = contentDescription)
+        }
+    }
+}
+
+@Composable
 fun SkinSectionTitle(text: String, modifier: Modifier = Modifier) {
     if (LocalUseMiuix.current) {
         // MIUIx pages have no section captions; cards are separated by spacing only.

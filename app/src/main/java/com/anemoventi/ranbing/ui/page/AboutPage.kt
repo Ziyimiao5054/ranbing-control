@@ -42,14 +42,6 @@ fun AboutPage() {
                 )
             }
 
-            SkinSectionTitle("开源声明")
-            SkinCard {
-                SkinText("界面骨架参考 InstallerX-Revived（GPL-3.0）", SkinTextKind.BODY)
-                SkinText(
-                    "本项目同样以 GPL-3.0 发布。UI 组件基于 Jetpack Compose、Material 3 与 MIUIx。",
-                    SkinTextKind.CAPTION,
-                )
-            }
         }
     }
 }

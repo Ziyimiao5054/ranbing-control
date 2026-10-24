@@ -37,7 +37,7 @@ fun AboutPage() {
                 SkinText(
                     "应用",
                     SkinTextKind.CAPTION,
-                    modifier = Modifier.padding(start = 4.dp, top = 4.dp),
+                    modifier = Modifier.padding(start = 12.dp, top = 4.dp),
                 )
             } else {
                 SkinSectionTitle("应用")

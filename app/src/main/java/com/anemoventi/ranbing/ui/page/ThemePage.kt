@@ -137,7 +137,12 @@ private fun MiuixThemeScreen(
             ),
         ) {
             item { Spacer(Modifier.height(12.dp)) }
-            item { MiuixSmallTitle("主题风格") }
+            item {
+                MiuixSmallTitle(
+                    "主题风格",
+                    modifier = Modifier.padding(start = 4.dp),
+                )
+            }
             item {
                 MiuixCard(
                     modifier = Modifier

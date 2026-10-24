@@ -14,8 +14,8 @@ android {
         applicationId = "com.anemoventi.ranbing"
         minSdk = 26
         targetSdk = 37
-        versionCode = 48
-        versionName = "1.8.14"
+        versionCode = 50
+        versionName = "1.8.16"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -83,6 +83,9 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
 }
+
+
+
 
 
 

@@ -115,6 +115,7 @@ private fun MiuixThemeScreen(
         topBar = {
             MiuixTopAppBar(
                 title = "主题设置",
+                modifier = Modifier.padding(start = 17.dp),
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
                     MiuixIconButton(onClick = onBack) {
@@ -136,17 +137,10 @@ private fun MiuixThemeScreen(
                 bottom = 24.dp,
             ),
         ) {
-            item { Spacer(Modifier.height(12.dp)) }
-            item {
-                MiuixSmallTitle(
-                    "主题风格",
-                    modifier = Modifier.padding(start = 4.dp),
-                )
-            }
             item {
                 MiuixCard(
                     modifier = Modifier
-                        .padding(horizontal = 12.dp)
+                        .padding(horizontal = 16.dp)
                         .padding(bottom = 12.dp),
                     insideMargin = PaddingValues(0.dp),
                 ) {

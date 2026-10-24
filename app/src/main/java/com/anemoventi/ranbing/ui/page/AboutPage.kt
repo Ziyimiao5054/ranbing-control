@@ -33,13 +33,7 @@ fun AboutPage() {
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (LocalUseMiuix.current) {
-                SkinText(
-                    "应用",
-                    SkinTextKind.CAPTION,
-                    modifier = Modifier.padding(start = 12.dp, top = 4.dp),
-                )
-            } else {
+            if (!LocalUseMiuix.current) {
                 SkinSectionTitle("应用")
             }
             SkinCard {

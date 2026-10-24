@@ -460,7 +460,7 @@ fun SkinStatusCard(
 fun SkinCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    contentPadding: Dp = 12.dp,
+    contentPadding: Dp = 16.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     if (LocalUseMiuix.current) {

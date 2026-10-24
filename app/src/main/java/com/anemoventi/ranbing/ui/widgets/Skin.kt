@@ -251,6 +251,7 @@ fun SkinTabPage(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .offset(y = (-9).dp)
                     .background(pageBackground),
             ) {
                 M3LargeFlexibleTopAppBar(

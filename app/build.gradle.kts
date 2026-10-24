@@ -14,8 +14,8 @@ android {
         applicationId = "com.anemoventi.ranbing"
         minSdk = 26
         targetSdk = 37
-        versionCode = 38
-        versionName = "1.8.4"
+        versionCode = 39
+        versionName = "1.8.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

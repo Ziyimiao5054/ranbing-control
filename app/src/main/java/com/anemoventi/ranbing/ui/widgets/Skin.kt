@@ -1147,15 +1147,7 @@ fun SkinNavigationBar(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(width = 56.dp, height = 32.dp)
-                            .background(
-                                color = if (selected) {
-                                    MiuixTheme.colorScheme.primary.copy(alpha = 0.18f)
-                                } else {
-                                    Color.Transparent
-                                },
-                                shape = RoundedCornerShape(50),
-                            ),
+                            .size(width = 56.dp, height = 32.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         MiuixIcon(
@@ -1163,7 +1155,7 @@ fun SkinNavigationBar(
                             contentDescription = tab.label,
                             modifier = Modifier.size(26.dp),
                             tint = if (selected) {
-                                MiuixTheme.colorScheme.onSurface
+                                MiuixTheme.colorScheme.primary
                             } else {
                                 MiuixTheme.colorScheme.onSurfaceVariantSummary
                             },
@@ -1173,7 +1165,7 @@ fun SkinNavigationBar(
                         text = tab.label,
                         style = androidx.compose.ui.text.TextStyle(fontSize = 12.sp),
                         color = if (selected) {
-                            MiuixTheme.colorScheme.onSurface
+                            MiuixTheme.colorScheme.primary
                         } else {
                             MiuixTheme.colorScheme.onSurfaceVariantSummary
                         },

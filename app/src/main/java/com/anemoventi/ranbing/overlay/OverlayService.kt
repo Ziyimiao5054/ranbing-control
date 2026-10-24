@@ -122,7 +122,11 @@ class OverlayService : Service() {
             }
         })
 
-        windowManager.addView(card, params)
+        runCatching { windowManager.addView(card, params) }
+            .onFailure {
+                stopSelf()
+                return
+            }
         root = card
     }
 

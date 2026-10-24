@@ -10,6 +10,7 @@ import com.anemoventi.ranbing.protocol.FrameCodec
 import com.anemoventi.ranbing.protocol.ParsedFrame
 import com.anemoventi.ranbing.protocol.RegisterDef
 import com.anemoventi.ranbing.protocol.RegisterSpace
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -70,7 +71,10 @@ fun DeviceState.configFloat(name: String, fallback: Float = 0f): Float =
 class DeviceRepository(context: Context) {
 
     val ble = BleClient(context)
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val crashHandler = CoroutineExceptionHandler { _, error ->
+        android.util.Log.e("Ranbing", "coroutine failed", error)
+    }
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate + crashHandler)
 
     private val _state = MutableStateFlow(DeviceState())
     val state: StateFlow<DeviceState> = _state.asStateFlow()

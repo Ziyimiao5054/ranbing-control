@@ -654,7 +654,16 @@ private fun ControlPanel(
         ) { on ->
             if (!on) {
                 device.setPowerTarget(null)
-                stopMaxRamp(restore = false)
+                if (maxRamping) {
+                    stopMaxRamp(restore = true)
+                } else if (overclock) {
+                    scope.launch {
+                        device.writeRegister("slider_voltage", preOverclockVoltage)
+                        device.writeRegister("key_grade", 3)
+                        device.writeRegister("temp_control_enable", 0)
+                    }
+                }
+                scope.launch { device.writeRegister("FAN_LED", 0) }
             }
             scope.launch { device.writeRegister("device_power_on", if (on) 1 else 0) }
         }

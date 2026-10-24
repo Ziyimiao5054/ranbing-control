@@ -14,8 +14,8 @@ android {
         applicationId = "com.anemoventi.ranbing"
         minSdk = 26
         targetSdk = 37
-        versionCode = 15
-        versionName = "1.4.2"
+        versionCode = 16
+        versionName = "1.4.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -75,6 +75,7 @@ dependencies {
     implementation(libs.miuix.nav)
     implementation(libs.miuix.preference)
     implementation(libs.miuix.icons)
+    implementation(libs.material.kolor)
 
     implementation(libs.kotlinx.serialization.json)
 

@@ -32,8 +32,10 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button as M3Button
 import androidx.compose.material3.ButtonDefaults as M3ButtonDefaults
+import androidx.compose.material3.SwitchDefaults as M3SwitchDefaults
 import androidx.compose.material3.Card as M3Card
 import androidx.compose.material3.CardDefaults as M3CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -676,7 +678,23 @@ fun SkinSwitchRow(
             M3ListItem(
                 headlineContent = { M3Text(title) },
                 supportingContent = summary?.let { text -> { M3Text(text) } },
-                trailingContent = { M3Switch(checked = checked, onCheckedChange = onCheckedChange) },
+                trailingContent = {
+                    M3Switch(
+                        checked = checked,
+                        onCheckedChange = onCheckedChange,
+                        thumbContent = if (checked) {
+                            {
+                                M3Icon(
+                                    imageVector = Icons.Rounded.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(M3SwitchDefaults.IconSize),
+                                )
+                            }
+                        } else {
+                            null
+                        },
+                    )
+                },
                 colors = M3ListItemDefaults.colors(
                     containerColor = Color.Transparent,
                 ),

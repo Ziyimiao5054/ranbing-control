@@ -34,6 +34,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.Button as M3Button
 import androidx.compose.material3.ButtonDefaults as M3ButtonDefaults
 import androidx.compose.material3.AlertDialog as M3AlertDialog
@@ -227,25 +228,39 @@ fun SkinTabPage(
 ) {
     val bottom = outerPadding.calculateBottomPadding()
     if (LocalUseMiuix.current) {
-        val behavior = MiuixScrollBehavior()
-        Column(modifier = Modifier.fillMaxSize()) {
-            MiuixTopAppBar(
-                title = title,
-                largeTitle = title,
-                scrollBehavior = behavior,
-                actions = { actions() },
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .nestedScroll(behavior.nestedScrollConnection),
-            ) {
+        // The reference app uses the Material 3 large flexible bar even on MIUIx.
+        val behavior = M3TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+        M3MaterialTheme(
+            colorScheme = darkColorScheme(
+                primary = Color(0xFF287AF9),
+                background = Color.Black,
+                surface = Color.Black,
+                onBackground = Color.White,
+                onSurface = Color.White,
+            ),
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                M3LargeFlexibleTopAppBar(
+                    title = { M3Text(title) },
+                    scrollBehavior = behavior,
+                    actions = { actions() },
+                    colors = M3TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Black,
+                        scrolledContainerColor = Color.Black,
+                    ),
+                )
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 12.dp, bottom = bottom),
+                        .nestedScroll(behavior.nestedScrollConnection),
                 ) {
-                    content()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(bottom = bottom),
+                    ) {
+                        content()
+                    }
                 }
             }
         }

@@ -535,6 +535,7 @@ private fun ControlPanel(
                     SkinTextKind.TITLE,
                 )
             }
+            Spacer(Modifier.height(14.dp))
             SkinSlider(
                 value = tempDraft,
                 onValueChange = {

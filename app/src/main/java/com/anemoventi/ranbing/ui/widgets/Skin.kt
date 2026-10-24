@@ -154,10 +154,19 @@ fun SkinScaffold(
                         scrollBehavior = behavior,
                         navigationIcon = {
                             if (onBack != null) {
-                                M3FilledTonalIconButton(onClick = onBack) {
-                                    M3Icon(
-                                        Icons.AutoMirrored.Rounded.ArrowBack,
+                                Box(
+                                    modifier = Modifier
+                                        .padding(start = 4.dp)
+                                        .size(40.dp)
+                                        .clip(CircleShape)
+                                        .background(MiuixTheme.colorScheme.surfaceContainerHigh)
+                                        .clickable(onClick = onBack),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    MiuixIcon(
+                                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                                         contentDescription = "返回",
+                                        tint = MiuixTheme.colorScheme.onSurface,
                                     )
                                 }
                             }
@@ -601,17 +610,19 @@ fun SkinInputField(
     modifier: Modifier = Modifier,
     placeholder: String = "",
 ) {
-    val container = if (LocalUseMiuix.current) {
-        MiuixTheme.colorScheme.surfaceContainer
+    val miuix = LocalUseMiuix.current
+    val dark = MiuixTheme.colorScheme.background.luminance() < 0.5f
+    val container = if (miuix) {
+        if (dark) Color(0xFF3A3A3A) else MiuixTheme.colorScheme.surfaceContainerHigh
     } else {
         M3MaterialTheme.colorScheme.surfaceContainer
     }
-    val textColor = if (LocalUseMiuix.current) {
+    val textColor = if (miuix) {
         MiuixTheme.colorScheme.onSurface
     } else {
         M3MaterialTheme.colorScheme.onSurface
     }
-    val hintColor = if (LocalUseMiuix.current) {
+    val hintColor = if (miuix) {
         MiuixTheme.colorScheme.onSurfaceVariantSummary
     } else {
         M3MaterialTheme.colorScheme.onSurfaceVariant
@@ -626,12 +637,18 @@ fun SkinInputField(
         modifier = modifier
             .fillMaxWidth()
             .background(container, RoundedCornerShape(12.dp))
-            .border(
-                width = 1.dp,
-                color = hintColor.copy(alpha = 0.4f),
-                shape = RoundedCornerShape(12.dp),
+            .then(
+                if (miuix) {
+                    Modifier
+                } else {
+                    Modifier.border(
+                        width = 1.dp,
+                        color = hintColor.copy(alpha = 0.4f),
+                        shape = RoundedCornerShape(12.dp),
+                    )
+                },
             )
-            .padding(horizontal = 12.dp, vertical = 12.dp),
+            .padding(horizontal = 14.dp, vertical = 14.dp),
         decorationBox = { inner ->
             Box {
                 if (value.isEmpty() && placeholder.isNotEmpty()) {
@@ -662,10 +679,11 @@ fun SkinPromptDialog(
         MiuixWindowDialog(
             show = true,
             title = title,
+            backgroundColor = if (MiuixTheme.colorScheme.background.luminance() < 0.5f) Color(0xFF2C2C2C) else Color.White,
             onDismissRequest = onDismiss,
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
-                SkinInputField(value = value, onValueChange = onValueChange, placeholder = "璁惧鍚嶇О")
+                SkinInputField(value = value, onValueChange = onValueChange, placeholder = "设备名称")
                 if (error != null) {
                     MiuixText(
                         text = error,
@@ -701,7 +719,7 @@ fun SkinPromptDialog(
             title = { M3Text(title) },
             text = {
                 Column {
-                    SkinInputField(value = value, onValueChange = onValueChange, placeholder = "璁惧鍚嶇О")
+                    SkinInputField(value = value, onValueChange = onValueChange, placeholder = "设备名称")
                     if (error != null) {
                         M3Text(
                             text = error,
@@ -738,6 +756,7 @@ fun SkinAlertDialog(
             show = true,
             title = title,
             summary = message,
+            backgroundColor = if (MiuixTheme.colorScheme.background.luminance() < 0.5f) Color(0xFF2C2C2C) else Color.White,
             onDismissRequest = onDismiss,
         ) {
             Row(

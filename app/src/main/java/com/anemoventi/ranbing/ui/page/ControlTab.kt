@@ -34,6 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.anemoventi.ranbing.ble.ConnectionState
@@ -65,6 +66,8 @@ import com.anemoventi.ranbing.ui.widgets.SkinTextKind
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
+
+private val OverclockRed = Color(0xFFD70014)
 
 @Composable
 fun ControlTab(
@@ -350,33 +353,40 @@ private fun ControlPanel(
         SkinSectionTitle("档位")
         SkinCard {
             SkinPillRow(
-                options = listOf("1 档", "2 档", "3 档", "温控", "超频"),
+                options = listOf("1 档", "2 档", "3 档", "温控"),
                 selectedIndex = when {
-                    overclock -> 4
+                    overclock -> -1
                     tempControl -> 3
                     grade in 1..3 -> grade - 1
                     else -> -1
                 },
             ) { index ->
                 scope.launch {
-                    if (index == 4) {
+                    if (overclock) device.writeRegister("slider_voltage", preOverclockVoltage)
+                    if (index < 3) {
+                        device.writeRegister("key_grade", index + 1)
+                        device.writeRegister("temp_control_enable", 0)
+                    } else {
+                        device.writeRegister("temp_control_enable", 1)
+                    }
+                }
+            }
+            Spacer(Modifier.height(10.dp))
+            SkinButton(
+                text = if (overclock) "退出超频" else "超频",
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                containerColor = OverclockRed,
+                onClick = {
+                    scope.launch {
                         if (overclock) {
                             device.writeRegister("slider_voltage", preOverclockVoltage)
                         } else {
                             preOverclockVoltage = voltage.coerceIn(2f, 12f)
                             device.writeRegister("slider_voltage", 15f)
                         }
-                    } else {
-                        if (overclock) device.writeRegister("slider_voltage", preOverclockVoltage)
-                        if (index < 3) {
-                            device.writeRegister("key_grade", index + 1)
-                            device.writeRegister("temp_control_enable", 0)
-                        } else {
-                            device.writeRegister("temp_control_enable", 1)
-                        }
                     }
-                }
-            }
+                },
+            )
             if (tempControl) {
                 SyncedSlider(
                     title = "目标温度",

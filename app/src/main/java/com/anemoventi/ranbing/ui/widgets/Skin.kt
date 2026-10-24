@@ -33,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.Button as M3Button
+import androidx.compose.material3.ButtonDefaults as M3ButtonDefaults
 import androidx.compose.material3.Card as M3Card
 import androidx.compose.material3.CardDefaults as M3CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -518,6 +519,8 @@ fun SkinButton(
     text: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    containerColor: Color? = null,
+    contentColor: Color = Color.White,
     onClick: () -> Unit,
 ) {
     if (LocalUseMiuix.current) {
@@ -525,15 +528,33 @@ fun SkinButton(
             onClick = onClick,
             modifier = modifier,
             enabled = enabled,
-            colors = MiuixButtonDefaults.buttonColorsPrimary(),
+            colors = if (containerColor != null) {
+                MiuixButtonDefaults.buttonColors(
+                    color = containerColor,
+                    contentColor = contentColor,
+                )
+            } else {
+                MiuixButtonDefaults.buttonColorsPrimary()
+            },
         ) {
-            MiuixText(text)
+            MiuixText(
+                text = text,
+                color = if (containerColor != null) contentColor else Color.Unspecified,
+            )
         }
     } else {
         M3Button(
             onClick = onClick,
             modifier = modifier,
             enabled = enabled,
+            colors = if (containerColor != null) {
+                M3ButtonDefaults.buttonColors(
+                    containerColor = containerColor,
+                    contentColor = contentColor,
+                )
+            } else {
+                M3ButtonDefaults.buttonColors()
+            },
         ) {
             M3Text(text)
         }

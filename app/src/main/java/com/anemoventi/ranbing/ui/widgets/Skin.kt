@@ -159,7 +159,6 @@ fun SkinScaffold(
                                         .padding(start = 4.dp)
                                         .size(40.dp)
                                         .clip(CircleShape)
-                                        .background(MiuixTheme.colorScheme.surfaceContainerHigh)
                                         .clickable(onClick = onBack),
                                     contentAlignment = Alignment.Center,
                                 ) {
@@ -1155,7 +1154,6 @@ private fun MiuixCompactTopBar(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(MiuixTheme.colorScheme.surfaceContainerHigh)
                     .clickable(onClick = onBack),
                 contentAlignment = Alignment.Center,
             ) {

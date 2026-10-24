@@ -122,69 +122,40 @@ fun SkinScaffold(
     content: @Composable (PaddingValues) -> Unit,
 ) {
     if (LocalUseMiuix.current) {
-        val background = MiuixTheme.colorScheme.background
-        val onBackground = MiuixTheme.colorScheme.onBackground
-        val dark = background.luminance() < 0.5f
-        val pageBackground = if (dark) background else Color(0xFFF2F3F5)
-        val collapsedBar = if (dark) background else Color.White
-        val scheme = if (dark) {
-            darkColorScheme(
-                primary = Color(0xFF287AF9),
-                background = pageBackground,
-                surface = pageBackground,
-                onBackground = onBackground,
-                onSurface = onBackground,
-            )
-        } else {
-            lightColorScheme(
-                primary = Color(0xFF287AF9),
-                background = pageBackground,
-                surface = Color.White,
-                onBackground = onBackground,
-                onSurface = onBackground,
-            )
-        }
-        val behavior = M3TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-        M3MaterialTheme(colorScheme = scheme) {
-            M3Scaffold(
-                containerColor = pageBackground,
-                topBar = {
-                    M3LargeTopAppBar(
-                        title = { M3Text(title) },
-                        scrollBehavior = behavior,
-                        navigationIcon = {
-                            if (onBack != null) {
-                                Box(
-                                    modifier = Modifier
-                                        .padding(start = 4.dp)
-                                        .size(40.dp)
-                                        .clip(CircleShape)
-                                        .clickable(onClick = onBack),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    MiuixIcon(
-                                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                                        contentDescription = "返回",
-                                        tint = MiuixTheme.colorScheme.onSurface,
-                                    )
-                                }
+        val behavior = MiuixScrollBehavior()
+        MiuixScaffold(
+            topBar = {
+                MiuixTopAppBar(
+                    title = title,
+                    largeTitle = title,
+                    scrollBehavior = behavior,
+                    navigationIcon = {
+                        if (onBack != null) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .clickable(onClick = onBack),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                MiuixIcon(
+                                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                    contentDescription = "返回",
+                                    tint = MiuixTheme.colorScheme.onSurface,
+                                )
                             }
-                        },
-                        colors = M3TopAppBarDefaults.topAppBarColors(
-                            containerColor = pageBackground,
-                            scrolledContainerColor = collapsedBar,
-                        ),
-                    )
-                },
-                bottomBar = bottomBar,
-            ) { padding ->
-                Column(
-                    modifier = Modifier
-                        .padding(padding)
-                        .nestedScroll(behavior.nestedScrollConnection),
-                ) {
-                    content(PaddingValues(0.dp))
-                }
+                        }
+                    },
+                )
+            },
+            bottomBar = bottomBar,
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .padding(padding)
+                    .nestedScroll(behavior.nestedScrollConnection),
+            ) {
+                content(PaddingValues(0.dp))
             }
         }
     } else {

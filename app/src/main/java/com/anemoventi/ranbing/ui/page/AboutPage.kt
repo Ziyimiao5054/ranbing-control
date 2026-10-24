@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.anemoventi.ranbing.BuildConfig
 import com.anemoventi.ranbing.ui.navigation.LocalNavigator
+import com.anemoventi.ranbing.ui.theme.LocalUseMiuix
 import com.anemoventi.ranbing.ui.widgets.SkinCard
 import com.anemoventi.ranbing.ui.widgets.SkinScaffold
 import com.anemoventi.ranbing.ui.widgets.SkinSectionTitle
@@ -32,7 +33,15 @@ fun AboutPage() {
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            SkinSectionTitle("应用")
+            if (LocalUseMiuix.current) {
+                SkinText(
+                    "应用",
+                    SkinTextKind.CAPTION,
+                    modifier = Modifier.padding(start = 4.dp, top = 4.dp),
+                )
+            } else {
+                SkinSectionTitle("应用")
+            }
             SkinCard {
                 SkinText("燃冰散热器控制", SkinTextKind.TITLE)
                 SkinText("版本 ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", SkinTextKind.CAPTION)

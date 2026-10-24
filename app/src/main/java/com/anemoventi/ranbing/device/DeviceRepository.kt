@@ -18,6 +18,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -297,6 +298,42 @@ class DeviceRepository(context: Context) {
         sendFrame(model.configReadCmd, Commands.READ_ALL, ByteArray(0), "全量读取配置")
     }
 
+    /**
+     * Renames the device like the mini program: the name lives at bytes 16..44 of the
+     * 256-byte info block, so the whole block is rewritten after reading it back.
+     */
+    suspend fun renameDevice(name: String): Result<Unit> = runCatching {
+        val trimmed = name.trim()
+        require(trimmed.isNotEmpty()) { "名称不能为空" }
+        require(trimmed.length <= 29) { "名称最多 29 字符" }
+        val encoded = trimmed.toByteArray(Charsets.UTF_8)
+        require(encoded.size <= 29) { "UTF-8 编码后 ${encoded.size} 字节，需 ≤29 字节" }
+
+        fun currentBlock(): ByteArray? =
+            (_state.value.config["upgrade_info_block"] as? ByteArray)
+                ?.takeIf { it.size == 256 && it.any { b -> b != 0.toByte() } }
+
+        var block = currentBlock()
+        if (block == null) {
+            requestConfigAll()
+            block = withTimeoutOrNull(3000) {
+                while (true) {
+                    val next = currentBlock()
+                    if (next != null) return@withTimeoutOrNull next
+                    delay(100)
+                }
+                @Suppress("UNREACHABLE_CODE")
+                null
+            }
+        }
+        val base = block ?: error("读取设备配置失败，请重试")
+        val updated = base.copyOf()
+        for (i in 0 until 29) {
+            updated[16 + i] = if (i < encoded.size) encoded[i] else 0
+        }
+        writeRegister("upgrade_info_block", updated)
+    }
+
     /** Debug probes used while reverse engineering the firmware. */
     suspend fun probeRead(cmd: Int, withPayload: Boolean) {
         val payload = if (withPayload) statusSpace.serializeAll(statusValues) else ByteArray(0)
@@ -372,8 +409,8 @@ class DeviceRepository(context: Context) {
                 when {
                     frame.payload.size == statusSize -> statusSpace.applyAll(frame.payload, statusValues)
                     frame.payload.size == configSize -> configSpace.applyAll(frame.payload, configValues)
-                    frame.payload.size < configSize -> statusSpace.applyAll(frame.payload, statusValues)
-                    else -> configSpace.applyAll(frame.payload, configValues)
+                    frame.payload.size > 100 -> configSpace.applyAll(frame.payload, configValues)
+                    else -> statusSpace.applyAll(frame.payload, statusValues)
                 }
             } else {
                 val fromStatus = statusSpace.applyOne(frame.addr, frame.payload, statusValues)

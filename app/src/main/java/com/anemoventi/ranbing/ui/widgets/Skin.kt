@@ -98,6 +98,7 @@ import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
 import top.yukonga.miuix.kmp.preference.ArrowPreference as MiuixArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import top.yukonga.miuix.kmp.window.WindowDialog as MiuixWindowDialog
 
 data class SkinTab(val label: String, val icon: ImageVector)
@@ -307,6 +308,8 @@ fun SkinStatusCard(
                 color = container,
                 contentColor = textColor,
             ),
+            showIndication = true,
+            pressFeedbackType = PressFeedbackType.Tilt,
             onClick = onClick,
         ) {
             Box(modifier = Modifier.fillMaxWidth()) {
@@ -512,6 +515,129 @@ fun SkinText(
                 SkinTextKind.CAPTION -> M3MaterialTheme.colorScheme.onSurfaceVariant
                 SkinTextKind.HEADLINE -> M3MaterialTheme.colorScheme.onBackground
                 else -> M3MaterialTheme.colorScheme.onSurface
+            },
+        )
+    }
+}
+
+@Composable
+fun SkinInputField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String = "",
+) {
+    val container = if (LocalUseMiuix.current) {
+        MiuixTheme.colorScheme.surfaceContainerHigh
+    } else {
+        M3MaterialTheme.colorScheme.surfaceContainerHigh
+    }
+    val textColor = if (LocalUseMiuix.current) {
+        MiuixTheme.colorScheme.onSurface
+    } else {
+        M3MaterialTheme.colorScheme.onSurface
+    }
+    val hintColor = if (LocalUseMiuix.current) {
+        MiuixTheme.colorScheme.onSurfaceVariantSummary
+    } else {
+        M3MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        textStyle = TextStyle(fontSize = 16.sp, color = textColor),
+        cursorBrush = SolidColor(textColor),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+        modifier = modifier
+            .fillMaxWidth()
+            .background(container, RoundedCornerShape(12.dp))
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        decorationBox = { inner ->
+            Box {
+                if (value.isEmpty() && placeholder.isNotEmpty()) {
+                    androidx.compose.foundation.text.BasicText(
+                        text = placeholder,
+                        style = TextStyle(fontSize = 16.sp, color = hintColor),
+                    )
+                }
+                inner()
+            }
+        },
+    )
+}
+
+@Composable
+fun SkinPromptDialog(
+    show: Boolean,
+    title: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    confirmText: String,
+    error: String?,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    if (!show) return
+    if (LocalUseMiuix.current) {
+        MiuixWindowDialog(
+            show = true,
+            title = title,
+            onDismissRequest = onDismiss,
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                SkinInputField(value = value, onValueChange = onValueChange, placeholder = "设备名称")
+                if (error != null) {
+                    MiuixText(
+                        text = error,
+                        color = Color(0xFFD70014),
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    SkinButton(
+                        text = "取消",
+                        modifier = Modifier.weight(1f),
+                        containerColor = MiuixTheme.colorScheme.surfaceContainerHigh,
+                        contentColor = MiuixTheme.colorScheme.onSurface,
+                        onClick = onDismiss,
+                    )
+                    SkinButton(
+                        text = confirmText,
+                        modifier = Modifier.weight(1f),
+                        onClick = onConfirm,
+                    )
+                }
+            }
+        }
+    } else {
+        M3AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { M3Text(title) },
+            text = {
+                Column {
+                    SkinInputField(value = value, onValueChange = onValueChange, placeholder = "设备名称")
+                    if (error != null) {
+                        M3Text(
+                            text = error,
+                            color = Color(0xFFD70014),
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                M3TextButton(onClick = onConfirm) { M3Text(confirmText) }
+            },
+            dismissButton = {
+                M3TextButton(onClick = onDismiss) { M3Text("取消") }
             },
         )
     }

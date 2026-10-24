@@ -58,6 +58,7 @@ import com.anemoventi.ranbing.ui.widgets.SkinMonoText
 import com.anemoventi.ranbing.ui.widgets.SkinNavRow
 import com.anemoventi.ranbing.ui.widgets.SkinNumberField
 import com.anemoventi.ranbing.ui.widgets.SkinPillRow
+import com.anemoventi.ranbing.ui.widgets.SkinPromptDialog
 import com.anemoventi.ranbing.ui.widgets.SkinSectionTitle
 import com.anemoventi.ranbing.ui.widgets.SkinSlider
 import com.anemoventi.ranbing.ui.widgets.SkinStatCard
@@ -317,12 +318,43 @@ private fun ControlPanel(
         else -> "—"
     }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        val infoBlock = state.config["upgrade_info_block"] as? ByteArray
+        val configuredName = remember(infoBlock) { decodeDeviceName(infoBlock) }
+        val displayName = configuredName ?: state.deviceName.ifBlank { "散热器" }
+        var showRename by remember { mutableStateOf(false) }
+        var renameValue by remember { mutableStateOf("") }
+        var renameError by remember { mutableStateOf<String?>(null) }
         SkinStatusCard(
-            title = "已连接 ${state.deviceName.ifBlank { "散热器" }}",
+            title = "已连接 $displayName",
             subtitle = "$firmwareLabel · $gradeLabel",
             detail = null,
             icon = Icons.Rounded.CheckCircleOutline,
             tone = SkinStatusTone.ACTIVE,
+            onClick = {
+                renameValue = displayName
+                renameError = null
+                showRename = true
+            },
+        )
+
+        SkinPromptDialog(
+            show = showRename,
+            title = "修改设备名称",
+            value = renameValue,
+            onValueChange = {
+                renameValue = it
+                renameError = null
+            },
+            confirmText = "保存",
+            error = renameError,
+            onConfirm = {
+                scope.launch {
+                    device.renameDevice(renameValue)
+                        .onSuccess { showRename = false }
+                        .onFailure { renameError = it.message ?: "保存失败" }
+                }
+            },
+            onDismiss = { showRename = false },
         )
 
         Row(
@@ -469,7 +501,17 @@ private fun ControlPanel(
             modifier = Modifier.fillMaxWidth(),
         )
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            SkinText("W", SkinTextKind.CAPTION)
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -480,7 +522,6 @@ private fun ControlPanel(
                 },
                 modifier = Modifier.weight(1f),
                 placeholder = "0–40",
-                suffix = "W",
             )
             SkinButton("应用") {
                 powerInput.toFloatOrNull()?.let {
@@ -607,6 +648,15 @@ private fun SyncedSlider(
             onCommit(value)
         },
     )
+}
+
+/** The X8 stores its name at bytes 16..44 of the 256-byte info block, NUL padded. */
+private fun decodeDeviceName(block: ByteArray?): String? {
+    if (block == null || block.size < 45) return null
+    val raw = block.copyOfRange(16, 45)
+    val end = raw.indexOfFirst { it == 0.toByte() }.let { if (it < 0) raw.size else it }
+    if (end == 0) return null
+    return String(raw, 0, end, Charsets.UTF_8).trim().ifEmpty { null }
 }
 
 /** The mini program uses 14 V for firmware 1.03, 15 V otherwise (S(firmwareVersion)). */

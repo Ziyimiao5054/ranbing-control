@@ -255,7 +255,12 @@ fun SkinTabPage(
                     .background(pageBackground),
             ) {
                 M3LargeFlexibleTopAppBar(
-                    title = { M3Text(title) },
+                    title = {
+                        M3Text(
+                            text = title,
+                            modifier = Modifier.offset(y = (-3).dp),
+                        )
+                    },
                     scrollBehavior = behavior,
                     windowInsets = M3TopAppBarDefaults.windowInsets.add(WindowInsets(left = 16.dp)),
                     actions = { actions() },

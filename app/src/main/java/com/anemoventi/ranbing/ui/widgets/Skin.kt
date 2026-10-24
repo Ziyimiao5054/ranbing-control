@@ -132,7 +132,7 @@ fun SkinScaffold(
                 ) {
                     MiuixIcon(
                         imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                        contentDescription = "返回",
+                        contentDescription = "杩斿洖",
                         tint = MiuixTheme.colorScheme.onSurface,
                     )
                 }
@@ -175,7 +175,7 @@ fun SkinScaffold(
                     navigationIcon = {
                         if (onBack != null) {
                             M3FilledTonalIconButton(onClick = onBack) {
-                                M3Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
+                                M3Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "杩斿洖")
                             }
                         }
                     },
@@ -627,7 +627,7 @@ fun SkinPromptDialog(
             onDismissRequest = onDismiss,
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
-                SkinInputField(value = value, onValueChange = onValueChange, placeholder = "设备名称")
+                SkinInputField(value = value, onValueChange = onValueChange, placeholder = "璁惧鍚嶇О")
                 if (error != null) {
                     MiuixText(
                         text = error,
@@ -643,7 +643,7 @@ fun SkinPromptDialog(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     SkinButton(
-                        text = "取消",
+                        text = "鍙栨秷",
                         modifier = Modifier.weight(1f),
                         containerColor = MiuixTheme.colorScheme.surfaceContainerHigh,
                         contentColor = MiuixTheme.colorScheme.onSurface,
@@ -663,7 +663,7 @@ fun SkinPromptDialog(
             title = { M3Text(title) },
             text = {
                 Column {
-                    SkinInputField(value = value, onValueChange = onValueChange, placeholder = "设备名称")
+                    SkinInputField(value = value, onValueChange = onValueChange, placeholder = "璁惧鍚嶇О")
                     if (error != null) {
                         M3Text(
                             text = error,
@@ -678,7 +678,7 @@ fun SkinPromptDialog(
                 M3TextButton(onClick = onConfirm) { M3Text(confirmText) }
             },
             dismissButton = {
-                M3TextButton(onClick = onDismiss) { M3Text("取消") }
+                M3TextButton(onClick = onDismiss) { M3Text("鍙栨秷") }
             },
         )
     }
@@ -692,7 +692,7 @@ fun SkinAlertDialog(
     confirmText: String,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
-    dismissText: String = "取消",
+    dismissText: String = "鍙栨秷",
 ) {
     if (!show) return
     if (LocalUseMiuix.current) {
@@ -1103,7 +1103,7 @@ private fun MiuixCompactTopBar(
             ) {
                 MiuixIcon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "返回",
+                    contentDescription = "杩斿洖",
                     tint = MiuixTheme.colorScheme.onSurface,
                 )
             }
@@ -1155,7 +1155,7 @@ fun SkinNavigationBar(
                             contentDescription = tab.label,
                             modifier = Modifier.size(26.dp),
                             tint = if (selected) {
-                                MiuixTheme.colorScheme.primary
+                                MiuixTheme.colorScheme.onSurface
                             } else {
                                 MiuixTheme.colorScheme.onSurfaceVariantSummary
                             },
@@ -1165,7 +1165,7 @@ fun SkinNavigationBar(
                         text = tab.label,
                         style = androidx.compose.ui.text.TextStyle(fontSize = 12.sp),
                         color = if (selected) {
-                            MiuixTheme.colorScheme.primary
+                            MiuixTheme.colorScheme.onSurface
                         } else {
                             MiuixTheme.colorScheme.onSurfaceVariantSummary
                         },

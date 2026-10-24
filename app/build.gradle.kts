@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
@@ -14,8 +14,8 @@ android {
         applicationId = "com.anemoventi.ranbing"
         minSdk = 26
         targetSdk = 37
-        versionCode = 39
-        versionName = "1.8.5"
+        versionCode = 40
+        versionName = "1.8.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -83,3 +83,4 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
 }
+

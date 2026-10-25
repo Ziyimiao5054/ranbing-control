@@ -5,6 +5,7 @@ package com.anemoventi.ranbing.ui.page
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -119,7 +121,17 @@ private fun MiuixThemeScreen(
                 navigationIconPadding = 5.dp,
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
-                    MiuixIconButton(onClick = onBack) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = onBack,
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
                         MiuixIcon(
                             imageVector = MiuixIcons.Regular.Back,
                             contentDescription = "返回",

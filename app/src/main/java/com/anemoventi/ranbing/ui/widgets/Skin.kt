@@ -138,7 +138,11 @@ fun SkinScaffold(
                                 modifier = Modifier
                                     .size(40.dp)
                                     .clip(CircleShape)
-                                    .clickable(onClick = onBack),
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        onClick = onBack,
+                                    ),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 MiuixIcon(

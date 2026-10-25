@@ -433,7 +433,7 @@ private fun ControlPanel(
                     else -> -1
                 },
                 center = true,
-                enabled = !powerMode && powerOn,
+                enabled = powerOn,
             ) { index ->
                 when (index) {
                     4 -> {
@@ -571,6 +571,15 @@ private fun ControlPanel(
                 modifier = Modifier.fillMaxWidth(),
             )
         } else {
+            var powerDragging by remember { mutableStateOf(false) }
+            LaunchedEffect(powerDragging, powerSlider) {
+                if (powerDragging && powerOn) {
+                    delay(500)
+                    stopMaxRamp(restore = false)
+                    if (powerTarget == null) prePowerVoltage = voltage
+                    device.setPowerTarget(powerSlider)
+                }
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -584,11 +593,15 @@ private fun ControlPanel(
             }
             SkinSlider(
                 value = powerSlider,
-                onValueChange = { powerSlider = it },
+                onValueChange = {
+                    powerDragging = true
+                    powerSlider = it
+                },
                 valueRange = 0f..50f,
                 steps = 49,
                 enabled = powerOn,
                 onValueChangeFinished = {
+                    powerDragging = false
                     stopMaxRamp(restore = false)
                     if (powerTarget == null) prePowerVoltage = voltage
                     device.setPowerTarget(powerSlider)

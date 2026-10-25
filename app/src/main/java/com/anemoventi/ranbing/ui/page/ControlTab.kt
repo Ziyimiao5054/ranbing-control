@@ -492,14 +492,14 @@ private fun ControlPanel(
                         text = if (overclock && !isMaxOverclock) "退出超频" else "超频",
                         modifier = Modifier.weight(1f).height(52.dp),
                         containerColor = OverclockRed,
-                        enabled = !powerMode && powerOn && !isMaxOverclock && !maxRamping,
+                        enabled = powerOn && !isMaxOverclock && !maxRamping,
                         onClick = { applyOverclock(overclockVoltage(state.firmware)) },
                     )
                     SkinButton(
                         text = if (isMaxOverclock || maxRamping) "退出超频" else "超频Max(60w)",
                         modifier = Modifier.weight(1f).height(52.dp),
                         containerColor = Color(0xFF8B0000),
-                        enabled = !powerMode && powerOn && !(overclock && !isMaxOverclock),
+                        enabled = powerOn && !(overclock && !isMaxOverclock),
                         onClick = {
                             if (maxRamping || isMaxOverclock) {
                                 stopMaxRamp(restore = true)
@@ -526,7 +526,7 @@ private fun ControlPanel(
                     text = if (overclock) "退出超频" else "超频",
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     containerColor = OverclockRed,
-                    enabled = !powerMode && powerOn,
+                    enabled = powerOn,
                     onClick = { applyOverclock(overclockVoltage(state.firmware)) },
                 )
             }

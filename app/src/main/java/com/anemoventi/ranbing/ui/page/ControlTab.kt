@@ -328,7 +328,6 @@ private fun ControlPanel(
     val powerTarget by device.powerTarget.collectAsStateWithLifecycle()
     val powerMode = powerTarget != null
     var powerSlider by remember { mutableFloatStateOf(powerTarget ?: 0f) }
-    var powerInput by remember { mutableStateOf("") }
     LaunchedEffect(powerTarget) {
         val target = powerTarget
         if (target != null) {
@@ -572,8 +571,6 @@ private fun ControlPanel(
                 modifier = Modifier.fillMaxWidth(),
             )
         } else {
-            val miuix = LocalUseMiuix.current
-            var powerDragging by remember { mutableStateOf(false) }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -587,75 +584,19 @@ private fun ControlPanel(
             }
             SkinSlider(
                 value = powerSlider,
-                onValueChange = {
-                    powerDragging = true
-                    powerSlider = it
-                },
+                onValueChange = { powerSlider = it },
                 valueRange = 0f..50f,
                 steps = 49,
                 enabled = powerOn,
                 onValueChangeFinished = {
-                    powerDragging = false
                     stopMaxRamp(restore = false)
                     if (powerTarget == null) prePowerVoltage = voltage
                     device.setPowerTarget(powerSlider)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = if (miuix) 10.dp else 0.dp),
+                    .padding(top = 10.dp),
             )
-            if (!miuix) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    SkinText("W", SkinTextKind.CAPTION)
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                if (!miuix) {
-                    SkinNumberField(
-                        value = powerInput,
-                        onValueChange = { text ->
-                            powerInput = text.filter { it.isDigit() || it == '.' }.take(4)
-                        },
-                        modifier = Modifier.weight(1f),
-                        placeholder = "0–50",
-                    )
-                } else {
-                    Spacer(Modifier.weight(1f))
-                }
-                SkinButton("应用", enabled = powerOn) {
-                    powerInput.toFloatOrNull()?.let {
-                        stopMaxRamp(restore = false)
-                        if (powerTarget == null) prePowerVoltage = voltage
-                        device.setPowerTarget(it)
-                    }
-                }
-                if (powerTarget != null) {
-                    SkinButton("关闭", enabled = powerOn) {
-                        device.setPowerTarget(null)
-                        scope.launch { device.writeRegister("slider_voltage", prePowerVoltage) }
-                    }
-                }
-            }
-            if (powerTarget != null) {
-                SkinText(
-                    "实测 %.1f W · 电压 %.1f V".format(
-                        state.float("power"),
-                        state.float("slider_voltage", 5f),
-                    ),
-                    SkinTextKind.CAPTION,
-                )
-            }
         }
     }
     }

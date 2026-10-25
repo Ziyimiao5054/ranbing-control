@@ -306,6 +306,7 @@ private fun ControlPanel(
     val overclock = voltage >= 14f
     var preOverclockVoltage by remember { mutableFloatStateOf(5f) }
     var prePowerVoltage by remember { mutableFloatStateOf(5f) }
+    var powerPanel by remember { mutableStateOf(false) }
     var maxRampJob by remember { mutableStateOf<Job?>(null) }
     var maxRamping by remember { mutableStateOf(false) }
     fun stopMaxRamp(restore: Boolean) {
@@ -424,9 +425,10 @@ private fun ControlPanel(
         SkinSectionTitle("档位")
         SkinCard {
             SkinPillRow(
-                options = listOf("1 档", "2 档", "3 档", "温控"),
+                options = listOf("1 档", "2 档", "3 档", "温控", "功率"),
                 selectedIndex = when {
                     overclock -> -1
+                    powerPanel -> 4
                     tempControl -> 3
                     grade in 1..3 -> grade - 1
                     else -> -1
@@ -434,14 +436,31 @@ private fun ControlPanel(
                 center = true,
                 enabled = !powerMode && powerOn,
             ) { index ->
-                device.setPowerTarget(null)
-                scope.launch {
-                    if (overclock) device.writeRegister("slider_voltage", preOverclockVoltage)
-                    if (index < 3) {
-                        device.writeRegister("key_grade", index + 1)
-                        device.writeRegister("temp_control_enable", 0)
-                    } else {
-                        device.writeRegister("temp_control_enable", 1)
+                when (index) {
+                    4 -> {
+                        device.setPowerTarget(null)
+                        powerPanel = true
+                        scope.launch {
+                            if (overclock) device.writeRegister("slider_voltage", preOverclockVoltage)
+                            device.writeRegister("temp_control_enable", 0)
+                        }
+                    }
+                    3 -> {
+                        powerPanel = false
+                        device.setPowerTarget(null)
+                        scope.launch {
+                            if (overclock) device.writeRegister("slider_voltage", preOverclockVoltage)
+                            device.writeRegister("temp_control_enable", 1)
+                        }
+                    }
+                    else -> {
+                        powerPanel = false
+                        device.setPowerTarget(null)
+                        scope.launch {
+                            if (overclock) device.writeRegister("slider_voltage", preOverclockVoltage)
+                            device.writeRegister("key_grade", index + 1)
+                            device.writeRegister("temp_control_enable", 0)
+                        }
                     }
                 }
             }
@@ -515,6 +534,7 @@ private fun ControlPanel(
         }
     }
 
+    if (tempControl || powerPanel) {
     SkinSectionTitle("制冷功率")
     SkinCard {
         if (tempControl) {
@@ -641,6 +661,7 @@ private fun ControlPanel(
                 )
             }
         }
+    }
     }
 
     SkinSectionTitle("控制")

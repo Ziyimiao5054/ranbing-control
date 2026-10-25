@@ -1247,7 +1247,7 @@ fun SkinPillRow(
 ) {
     if (center) {
         Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 options.forEachIndexed { index, label ->
                     PillItem(label, index == selectedIndex, enabled) { onSelect(index) }
                 }
@@ -1283,7 +1283,7 @@ private fun PillItem(label: String, selected: Boolean, enabled: Boolean, onClick
                 .clip(RoundedCornerShape(50))
                 .background(container)
                 .clickable(enabled = enabled, onClick = onClick)
-                .padding(horizontal = 18.dp, vertical = 9.dp),
+                .padding(horizontal = 12.dp, vertical = 9.dp),
             contentAlignment = Alignment.Center,
         ) {
             MiuixText(text = label, color = content)

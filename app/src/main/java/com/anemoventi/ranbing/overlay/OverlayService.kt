@@ -75,10 +75,10 @@ class OverlayService : Service() {
     private fun show() {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(12), dp(9), dp(12), dp(9))
+            setPadding(dp(7), dp(5), dp(7), dp(5))
             background = GradientDrawable().apply {
-                cornerRadius = dp(12).toFloat()
-                setColor(0x99000000.toInt())
+                cornerRadius = dp(8).toFloat()
+                setColor(0x80000000.toInt())
             }
         }
         coldView = addRow(card, "冷端")
@@ -159,19 +159,19 @@ class OverlayService : Service() {
     private fun addRow(parent: LinearLayout, label: String): TextView {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
-            setPadding(0, dp(4), 0, 0)
+            setPadding(0, dp(2), 0, 0)
         }
         row.addView(
             TextView(this).apply {
                 text = label
                 setTextColor(0xFFB4B4B4.toInt())
-                textSize = 11f
+                textSize = 8f
             },
             LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f),
         )
         val value = TextView(this).apply {
             setTextColor(0xFFFFFFFF.toInt())
-            textSize = 13f
+            textSize = 10f
             typeface = Typeface.MONOSPACE
         }
         row.addView(
@@ -179,7 +179,7 @@ class OverlayService : Service() {
             LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT,
-            ).apply { leftMargin = dp(6) },
+            ).apply { leftMargin = dp(4) },
         )
         parent.addView(row)
         return value

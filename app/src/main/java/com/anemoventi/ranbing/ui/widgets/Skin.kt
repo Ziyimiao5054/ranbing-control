@@ -263,9 +263,10 @@ fun SkinTabPage(
             ) {
                 M3LargeFlexibleTopAppBar(
                     title = {
+                        val expandedFraction = 1f - behavior.state.collapsedFraction
                         M3Text(
                             text = title,
-                            modifier = Modifier.offset(y = (-3).dp),
+                            modifier = Modifier.offset(y = (-3).dp * expandedFraction),
                         )
                     },
                     scrollBehavior = behavior,

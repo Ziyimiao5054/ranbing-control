@@ -8,6 +8,7 @@ import android.graphics.PixelFormat
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.IBinder
+import android.os.SystemClock
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
@@ -18,6 +19,7 @@ import com.anemoventi.ranbing.App
 import com.anemoventi.ranbing.ble.ConnectionState
 import com.anemoventi.ranbing.device.DeviceState
 import com.anemoventi.ranbing.device.float
+import kotlin.math.abs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -103,6 +105,8 @@ class OverlayService : Service() {
             private var downY = 0f
             private var startX = 0
             private var startY = 0
+            private var moved = false
+            private var lastTapAt = 0L
 
             override fun onTouch(v: View, event: MotionEvent): Boolean {
                 when (event.action) {
@@ -111,15 +115,32 @@ class OverlayService : Service() {
                         downY = event.rawY
                         startX = layout.x
                         startY = layout.y
+                        moved = false
                         return true
                     }
                     MotionEvent.ACTION_MOVE -> {
+                        if (abs(event.rawX - downX) > dp(6).toFloat() ||
+                            abs(event.rawY - downY) > dp(6).toFloat()
+                        ) {
+                            moved = true
+                        }
                         val metrics = resources.displayMetrics
                         val maxX = (metrics.widthPixels - card.width).coerceAtLeast(0)
                         val maxY = (metrics.heightPixels - card.height).coerceAtLeast(0)
                         layout.x = (startX + (event.rawX - downX).toInt()).coerceIn(0, maxX)
                         layout.y = (startY + (event.rawY - downY).toInt()).coerceIn(0, maxY)
                         runCatching { windowManager.updateViewLayout(card, layout) }
+                        return true
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        if (!moved) {
+                            val now = SystemClock.uptimeMillis()
+                            if (now - lastTapAt < 300L) {
+                                stopSelf()
+                            } else {
+                                lastTapAt = now
+                            }
+                        }
                         return true
                     }
                 }

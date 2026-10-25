@@ -109,7 +109,7 @@ private fun MiuixThemeScreen(
         ThemeMode.DARK -> 1
         ThemeMode.SYSTEM -> 2
     }
-    val rowMargin = PaddingValues(start = 10.dp, top = 12.dp, end = 12.dp, bottom = 12.dp)
+    val rowMargin = PaddingValues(start = 15.dp, top = 12.dp, end = 12.dp, bottom = 12.dp)
 
     MiuixScaffold(
         topBar = {

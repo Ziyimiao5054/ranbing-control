@@ -36,7 +36,7 @@ fun AboutPage() {
             if (!LocalUseMiuix.current) {
                 SkinSectionTitle("应用")
             }
-            SkinCard(contentPadding = 10.dp) {
+            SkinCard(contentPadding = 15.dp) {
                 SkinText("燃冰散热器控制", SkinTextKind.TITLE)
                 SkinText("版本 ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})", SkinTextKind.CAPTION)
                 SkinText(

@@ -172,7 +172,7 @@ class DeviceRepository(context: Context) {
             _powerTarget.value = null
             return
         }
-        val target = watts.coerceIn(0f, 40f)
+        val target = watts.coerceIn(0f, 50f)
         _powerTarget.value = target
         powerJob = scope.launch { runPowerLoop() }
     }
@@ -219,9 +219,9 @@ class DeviceRepository(context: Context) {
         } else {
             sqrt(target / 0.4f)
         }
-        val clamped = estimate.coerceIn(0f, 12.5f)
+        val clamped = estimate.coerceIn(0f, 13.8f)
         val delta = (clamped - voltage).coerceIn(-1f, 1f)
-        return ((voltage + delta).coerceIn(0f, 12.5f) * 10f).roundToInt() / 10f
+        return ((voltage + delta).coerceIn(0f, 13.8f) * 10f).roundToInt() / 10f
     }
 
     private fun onConnected() {

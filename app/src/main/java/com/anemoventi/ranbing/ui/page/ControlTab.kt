@@ -562,8 +562,8 @@ private fun ControlPanel(
                     tempDragging = true
                     tempDraft = it
                 },
-                valueRange = -25f..25f,
-                steps = 499,
+                valueRange = -32f..15f,
+                steps = 469,
                 enabled = powerOn,
                 onValueChangeFinished = {
                     tempDragging = false
@@ -591,8 +591,8 @@ private fun ControlPanel(
                     powerDragging = true
                     powerSlider = it
                 },
-                valueRange = 0f..40f,
-                steps = 39,
+                valueRange = 0f..50f,
+                steps = 49,
                 enabled = powerOn,
                 onValueChangeFinished = {
                     powerDragging = false
@@ -628,7 +628,7 @@ private fun ControlPanel(
                             powerInput = text.filter { it.isDigit() || it == '.' }.take(4)
                         },
                         modifier = Modifier.weight(1f),
-                        placeholder = "0–40",
+                        placeholder = "0–50",
                     )
                 } else {
                     Spacer(Modifier.weight(1f))

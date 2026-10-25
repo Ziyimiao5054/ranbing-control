@@ -467,6 +467,7 @@ private fun ControlPanel(
             val isMaxOverclock = voltage >= 14.5f
             val applyOverclock: (Float) -> Unit = { target ->
                 stopMaxRamp(restore = false)
+                powerPanel = false
                 device.setPowerTarget(null)
                 scope.launch {
                     when {
@@ -533,7 +534,7 @@ private fun ControlPanel(
         }
     }
 
-    if (tempControl || powerPanel) {
+    if (!overclock && (tempControl || powerPanel)) {
     SkinSectionTitle("制冷功率")
     SkinCard {
         if (tempControl) {

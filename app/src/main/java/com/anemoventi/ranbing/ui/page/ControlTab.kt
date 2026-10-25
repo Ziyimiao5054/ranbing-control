@@ -438,8 +438,8 @@ private fun ControlPanel(
             SkinPillRow(
                 options = listOf("1 档", "2 档", "3 档", "温控", "功率"),
                 selectedIndex = when {
-                    overclock -> -1
                     powerPanel -> 4
+                    overclock -> -1
                     tempControl -> 3
                     grade in 1..3 -> grade - 1
                     else -> -1
@@ -452,7 +452,6 @@ private fun ControlPanel(
                         device.setPowerTarget(null)
                         powerPanel = true
                         scope.launch {
-                            if (overclock) device.writeRegister("slider_voltage", preOverclockVoltage)
                             device.writeRegister("temp_control_enable", 0)
                         }
                     }
@@ -546,7 +545,7 @@ private fun ControlPanel(
         }
     }
 
-    if (!overclock && (tempControl || powerPanel)) {
+    if (tempControl || powerPanel) {
     SkinSectionTitle("制冷功率")
     SkinCard {
         if (tempControl) {
@@ -604,14 +603,15 @@ private fun ControlPanel(
                     SkinTextKind.TITLE,
                 )
             }
+            val powerMax = if (overclock) 60f else 50f
             SkinSlider(
                 value = powerSlider,
                 onValueChange = {
                     powerDragging = true
                     powerSlider = it
                 },
-                valueRange = 0f..50f,
-                steps = 49,
+                valueRange = 0f..powerMax,
+                steps = powerMax.toInt() - 1,
                 enabled = powerOn,
                 onValueChangeFinished = {
                     powerDragging = false

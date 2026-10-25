@@ -581,11 +581,7 @@ private fun ControlPanel(
             ) {
                 SkinText("目标功率", SkinTextKind.TITLE)
                 SkinText(
-                    when {
-                        powerTarget != null -> String.format(Locale.US, "(±3W)%.0fW", powerSlider)
-                        powerDragging -> String.format(Locale.US, "(±3W)%.0fW", powerSlider)
-                        else -> "未启用"
-                    },
+                    String.format(Locale.US, "(±3W)%.0fW", powerSlider),
                     SkinTextKind.TITLE,
                 )
             }

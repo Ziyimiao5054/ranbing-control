@@ -76,7 +76,7 @@ class OverlayService : Service() {
             setPadding(dp(12), dp(9), dp(12), dp(9))
             background = GradientDrawable().apply {
                 cornerRadius = dp(12).toFloat()
-                setColor(0xE6F2F2F2.toInt())
+                setColor(0x99000000.toInt())
             }
         }
         coldView = addRow(card, "冷端")
@@ -143,13 +143,13 @@ class OverlayService : Service() {
         row.addView(
             TextView(this).apply {
                 text = label
-                setTextColor(0xFF5F6368.toInt())
+                setTextColor(0xFFB4B4B4.toInt())
                 textSize = 11f
             },
             LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f),
         )
         val value = TextView(this).apply {
-            setTextColor(0xFF1C1C1C.toInt())
+            setTextColor(0xFFFFFFFF.toInt())
             textSize = 13f
             typeface = Typeface.MONOSPACE
         }

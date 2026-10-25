@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -1268,10 +1269,12 @@ fun SkinPillRow(
 @Composable
 private fun PillItem(label: String, selected: Boolean, enabled: Boolean, onClick: () -> Unit) {
     if (LocalUseMiuix.current) {
-        val container = if (selected) {
-            MiuixTheme.colorScheme.primary.copy(alpha = if (enabled) 0.22f else 0.12f)
-        } else {
-            MiuixTheme.colorScheme.surfaceContainerHigh.copy(alpha = if (enabled) 1f else 0.5f)
+        val interaction = remember { MutableInteractionSource() }
+        val pressed = interaction.collectIsPressedAsState().value
+        val container = when {
+            selected -> MiuixTheme.colorScheme.primary.copy(alpha = if (enabled) 0.22f else 0.12f)
+            pressed && enabled -> MiuixTheme.colorScheme.surfaceContainerHigh
+            else -> Color.Transparent
         }
         val content = if (selected) {
             MiuixTheme.colorScheme.primary.copy(alpha = if (enabled) 1f else 0.45f)
@@ -1282,7 +1285,12 @@ private fun PillItem(label: String, selected: Boolean, enabled: Boolean, onClick
             modifier = Modifier
                 .clip(RoundedCornerShape(50))
                 .background(container)
-                .clickable(enabled = enabled, onClick = onClick)
+                .clickable(
+                    interactionSource = interaction,
+                    indication = null,
+                    enabled = enabled,
+                    onClick = onClick,
+                )
                 .padding(horizontal = 12.dp, vertical = 9.dp),
             contentAlignment = Alignment.Center,
         ) {

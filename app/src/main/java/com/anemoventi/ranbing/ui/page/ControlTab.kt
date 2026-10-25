@@ -349,9 +349,21 @@ private fun ControlPanel(
         var showRename by remember { mutableStateOf(false) }
         var renameValue by remember { mutableStateOf("") }
         var renameError by remember { mutableStateOf<String?>(null) }
+        val powerTargetNow = powerTarget
+        val modeLabel = when {
+            powerTargetNow != null -> "当前 %.1f W / 设置 %.0f W".format(
+                state.float("power"),
+                powerTargetNow,
+            )
+            tempControl -> "当前 %.1f °C / 设置 %.1f °C".format(
+                state.float("l_temp", 25f),
+                state.float("temp_target"),
+            )
+            else -> gradeLabel
+        }
         SkinStatusCard(
             title = "已连接 $displayName",
-            subtitle = "$firmwareLabel · $gradeLabel",
+            subtitle = "$firmwareLabel · $modeLabel",
             detail = null,
             icon = Icons.Rounded.CheckCircleOutline,
             tone = SkinStatusTone.ACTIVE,

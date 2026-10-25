@@ -66,6 +66,7 @@ import androidx.compose.material3.TopAppBarDefaults as M3TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.alpha
@@ -264,10 +265,17 @@ fun SkinTabPage(
                 M3LargeFlexibleTopAppBar(
                     title = {
                         val expandedFraction = 1f - behavior.state.collapsedFraction
-                        M3Text(
-                            text = title,
-                            modifier = Modifier.offset(y = (-3).dp * expandedFraction),
-                        )
+                        val collapsed = expandedFraction < 0.5f
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = if (collapsed) Alignment.Center else Alignment.CenterStart,
+                        ) {
+                            M3Text(
+                                text = title,
+                                modifier = Modifier.offset(y = (-3).dp * expandedFraction),
+                                textAlign = TextAlign.Center,
+                            )
+                        }
                     },
                     scrollBehavior = behavior,
                     windowInsets = M3TopAppBarDefaults.windowInsets.add(WindowInsets(left = 16.dp)),
